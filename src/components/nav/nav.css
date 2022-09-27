@@ -1,0 +1,53 @@
+.nav_logo_container {
+
+    margin-left: calc(5.5rem + 10vw);
+    /* background: rgba(0, 0, 0, 0.206); */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    text-decoration: none;
+    float: none;
+
+
+}
+
+.nav_logo {
+
+    font-family: "Mistral Regular";
+    color: rgb(255, 20, 147); 
+    font-weight: 400;
+    font-size: 35px;
+    text-decoration: none;
+
+}
+
+.logo_img {
+    width: 48px;
+    padding: 4px;
+    margin: 0 10px;
+}
+
+@media only screen and (max-width: 600px) {
+    .logo_img {
+        width: 24px;
+        padding: 2px;
+        margin: 0 6px;
+    }
+
+    .nav_logo {
+
+       
+        font-size: 25px;
+        
+
+    }
+
+    .nav_logo_container {
+
+        margin-left: calc(1rem + 2vw);
+
+
+
+    }
+}

@@ -1,0 +1,89 @@
+ @import "./styles/variables";
+// @import "./styles/background";
+// @import "./styles/topnav";
+ @import "./styles/leftnav";
+@import "./styles/sidenav";
+// @import "./styles//backdrop";
+// @import "./styles/product";
+// @import "./styles/gallery";
+// @import "./styles/colorbar";
+// @import "./styles/searchbycolor";
+// @import "./styles/searchbyimage";
+// @import "./styles/moodboard";
+ @import "./styles/contact";
+
+// @font-face {
+//   font-family: "Lato";
+//   src: local("lato"), url(./fonts/lato/Lato-Regular.ttf) format("truetype");
+// }
+
+// @font-face {
+//   font-family: "Mistral Regular";
+//   src: local("mistral"), url(./fonts/mistral/MISTRAL.TTF) format("truetype");
+// }
+@import "./styles/checkout";
+
+*,
+html,
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: none;
+  font-family: "Lato", sans-serif;
+}
+
+//This class (is)was specifically for leaving enough space for the top navbar
+.container {
+  margin-top: 80px;
+  padding: 10px 170px 20px;
+  h1 {
+    margin: 20px 0 20px 24px;
+    font-size: 28px;
+    font-weight: 600;
+    width: 90%;
+  }
+}
+
+@media all and(max-width: $large-desktop) {
+  .container {
+    padding: 10px 110px 20px;
+    h1 {
+      margin: 20px 0 20px 30px;
+    }
+  }
+}
+
+@media all and (max-width: 1240px) {
+  .container {
+    padding: 10px 80px 10px;
+    h1 {
+      margin: 20px 0 20px 30px;
+    }
+  }
+}
+
+@media all and (max-width: $tablet) {
+  .gallery {
+    h1 {
+      margin: 20px 0 20px 20px;
+    }
+  }
+}
+
+@media all and (max-width: $desktop) {
+  .gallery {
+    h1 {
+      margin: 20px 0 20px 15px;
+    }
+  }
+}
+
+@media all and (max-width: $phone) {
+  .container {
+    padding: 10px;
+    h1 {
+      margin: 10px 0 15px 12px;
+    }
+  }
+}
