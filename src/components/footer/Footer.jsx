@@ -100,7 +100,7 @@ const Footer = () => {
     <Container>
       <Left>
         {/* <img src= {logo} alt="logo" /> */}
-        <Logo>first Impression LLP</Logo>
+        <Logo>First Impression Furnishing LLP</Logo>
         <Desc></Desc>
       </Left>
       <Center>
@@ -113,9 +113,6 @@ const Footer = () => {
             <Link to="/cart">Cart</Link>
           </ListItem>
 
-          <ListItem>
-            <Link to="/user/history">Wallpapers</Link>
-          </ListItem>
           <ListItem>
             <Link to="/user/history">My Account</Link>
           </ListItem>

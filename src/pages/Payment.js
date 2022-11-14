@@ -8,14 +8,11 @@ import { useDispatch, useSelector } from "react-redux";
 const promise = loadStripe(process.env.REACT_APP_STRIPE_KEY);
 
 const Payment = () => {
-
-
   return (
     <div className="container p-5 text-center">
-
       <h4>Complete your purchase</h4>
       <p className="text-secondary">"Do not Refresh or Navigate"</p>
-      <p className="text-secondary">For testing purposes :- use Card number as : 4242 4242 4242 4242 </p>
+
       <Elements stripe={promise}>
         <div className="col-md-8 offset-md-2">
           <StripeCheckout />
