@@ -140,8 +140,8 @@ const Footer = () => {
           Chambers, Ground floor, Kemps Corner, Mumbai - 400036
         </ContactItem>
         <ContactItem>
-          <Phone style={{ marginRight: "10px" }} /> +91-22-23631490,
-          +91-22-23634167
+          <Phone style={{ marginRight: "10px" }} /> 7777045811, +91-22-66642030,
+          +91-22-66642031,
         </ContactItem>
         <ContactItem>
           <MailOutline style={{ marginRight: "10px" }} /> meher@firstimp.in,
