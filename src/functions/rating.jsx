@@ -1,5 +1,5 @@
 import React from "react";
-import StarRating from "react-star-ratings";
+import StarRating from "../components/forms/StarRatings";
 
 export const showAverage = (p) => {
   let ratingArray = p && p.ratings;

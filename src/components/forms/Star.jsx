@@ -1,5 +1,5 @@
 import React from "react";
-import StarRating from "react-star-ratings";
+import StarRating from "./StarRatings";
 
 const Star = ({starClick, numberOfStars}) => 
 <>

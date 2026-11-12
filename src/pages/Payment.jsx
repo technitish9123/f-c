@@ -5,7 +5,7 @@ import StripeCheckout from "../components/cards/StripeCheckout";
 import "../stripe.css";
 import { useDispatch, useSelector } from "react-redux";
 
-const promise = loadStripe(process.env.REACT_APP_STRIPE_KEY);
+const promise = loadStripe(import.meta.env.REACT_APP_STRIPE_KEY);
 
 const Payment = () => {
   return (

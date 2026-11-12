@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const getOrders = async (authtoken) =>
-  await axios.get(`${process.env.REACT_APP_API}/admin/orders`, {
+  await axios.get(`${import.meta.env.REACT_APP_API}/admin/orders`, {
     headers: {
       authtoken,
     },
@@ -9,7 +9,7 @@ export const getOrders = async (authtoken) =>
 
 export const updateOrderStatus = async (authtoken, orderId, orderStatus) =>
   await axios.put(
-    `${process.env.REACT_APP_API}/admin/order-status`,
+    `${import.meta.env.REACT_APP_API}/admin/order-status`,
     {
       orderId,
       orderStatus,
@@ -24,7 +24,7 @@ export const updateOrderStatus = async (authtoken, orderId, orderStatus) =>
   // sliderImages
 
   // export const uploadSliderImg = async (img, authtoken) =>
-  // await axios.post(`${process.env.REACT_APP_API}/admin/uploadSliderImage`, img, {
+  // await axios.post(`${import.meta.env.REACT_APP_API}/admin/uploadSliderImage`, img, {
   //   headers: {
   //     authtoken,
   //   },
@@ -32,7 +32,7 @@ export const updateOrderStatus = async (authtoken, orderId, orderStatus) =>
 
   export const uploadSliderImg = async ( sliderImages) =>
   await axios.put(
-    `${process.env.REACT_APP_API}/admin/uploadSliderImage`,
+    `${import.meta.env.REACT_APP_API}/admin/uploadSliderImage`,
     { sliderImages },
    
   );
