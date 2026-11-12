@@ -441,3 +441,50 @@ hr { border: 0; border-top: 1px solid var(--line); }
 .shop-filters .star-ratings { margin: 2px 0; }
 .cart-table td { text-align: left !important; }
 .cart-table td:nth-child(2) { font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; }
+
+/* ---------- Brand mark ---------- */
+.weave-mark { display: block; flex-shrink: 0; }
+.site-header__logo .site-header__mark { color: var(--ink); margin-bottom: 4px; transition: transform .6s var(--ease); }
+.site-header__logo:hover .site-header__mark { transform: rotate(90deg); }
+@media (max-width: 900px) { .site-header__logo .site-header__mark { display: none; } }
+.site-footer__mark { color: #f6f3ee; margin-bottom: 28px; }
+.site-footer__inner { position: relative; overflow: hidden; }
+.site-footer__watermark { position: absolute; right: -70px; bottom: -90px; color: #f6f3ee; opacity: .03; pointer-events: none; }
+.site-footer__bottom { position: static; }
+.page-loader { min-height: 70vh; display: grid; place-items: center; color: var(--ink); }
+.page-loader .weave-mark { animation: weave-breathe 1.6s var(--ease) infinite; }
+@keyframes weave-breathe { 0%, 100% { opacity: .25; transform: scale(.96); } 50% { opacity: 1; transform: scale(1); } }
+@media (min-width: 901px) { .site-header__inner { height: auto; min-height: 84px; padding-top: 14px; padding-bottom: 12px; } }
+
+/* ---------- Mobile menu drawer fix ----------
+   backdrop-filter on the sticky header makes it the containing block for
+   fixed children, so the drawer is anchored to the header instead. */
+@media (max-width: 900px) {
+  .site-header { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--paper); }
+  .site-header__drawer {
+    position: absolute; inset: 100% auto auto 0; width: 100%;
+    height: calc(100vh - 64px); height: calc(100dvh - 64px); overflow-y: auto;
+    background: var(--paper); border-top: 1px solid var(--line);
+    padding: 24px var(--gutter) 40px; visibility: hidden;
+    transform: translateX(-100%); transition: transform .5s var(--ease), visibility 0s linear .5s;
+  }
+  .site-header__drawer.open { visibility: visible; transform: none; transition: transform .5s var(--ease), visibility 0s; }
+  .site-header__drawer a, .site-header__drawer button { font-size: 28px; padding: 12px 0; width: 100%; }
+  .site-header__logo span { font-size: 15px; letter-spacing: .16em; white-space: nowrap; }
+  .site-header__icons { gap: 14px; }
+  .site-header__icons a, .site-header__icons button { font-size: 10px; letter-spacing: .14em; }
+}
+body.menu-open { overflow: hidden; }
+
+/* ---------- Cart side drawer ---------- */
+.ant-drawer-content { background: var(--paper) !important; }
+.ant-drawer-header { background: var(--paper) !important; border-bottom: 1px solid var(--line) !important; padding: 22px 24px !important; }
+.ant-drawer-title { font-size: 11px !important; letter-spacing: var(--track); text-transform: uppercase; color: var(--ink) !important; font-weight: 400 !important; }
+.ant-drawer-body { padding: 8px 24px 24px !important; }
+.ant-drawer-body .row { margin: 0; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.ant-drawer-body .col { display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; padding: 0; }
+.sidedrawer-image { width: 64px !important; height: 80px !important; object-fit: cover; }
+.ant-drawer-body .bg-secondary { background: none !important; color: var(--ink) !important; text-align: left !important; margin: 0;
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+.ant-drawer-body .btn { margin-top: 24px; padding: 16px 0; }
+.ant-drawer-body .btn, .ant-drawer-body .ant-btn { height: auto !important; line-height: 1.4 !important; }

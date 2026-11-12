@@ -13,9 +13,11 @@ const useReveal = () => {
   useEffect(() => {
     if (!("IntersectionObserver" in window)) return;
     document.documentElement.classList.add("reveal-ready");
+    let fired = false;
     const io = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
+          fired = true;
           if (e.isIntersecting) {
             e.target.classList.add("is-in");
             io.unobserve(e.target);
@@ -23,8 +25,27 @@ const useReveal = () => {
         }),
       { threshold: 0.12 }
     );
-    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    const watch = () =>
+      document
+        .querySelectorAll(".reveal:not(.is-in):not([data-reveal])")
+        .forEach((el) => {
+          el.setAttribute("data-reveal", "");
+          io.observe(el);
+        });
+    watch();
+    // content loaded from the API (e.g. category tiles) mounts later
+    const mo = new MutationObserver(watch);
+    mo.observe(document.body, { childList: true, subtree: true });
+    // fail-safe: never leave content hidden if the observer doesn't report
+    const failsafe = setTimeout(() => {
+      if (!fired) document.documentElement.classList.remove("reveal-ready");
+    }, 1500);
+    return () => {
+      clearTimeout(failsafe);
+      document.documentElement.classList.remove("reveal-ready");
+      io.disconnect();
+      mo.disconnect();
+    };
   }, []);
 };
 

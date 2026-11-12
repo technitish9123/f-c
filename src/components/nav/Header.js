@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Badge, Dropdown, Menu } from "antd";
 import { MenuOutlined, CloseOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import Search from "../forms/Search";
 import "./nav.css";
-import logo from "../assets/images/firstimp.png";
+import WeaveMark from "../brand/WeaveMark";
 
 const Header = () => {
   const [open, setOpen] = useState(false);
@@ -48,6 +48,12 @@ const Header = () => {
 
   const close = () => setOpen(false);
 
+  // lock page scroll while the mobile menu is open
+  useEffect(() => {
+    document.body.classList.toggle("menu-open", open);
+    return () => document.body.classList.remove("menu-open");
+  }, [open]);
+
   return (
     <header className="site-header">
       <div className="site-header__inner">
@@ -68,7 +74,7 @@ const Header = () => {
         </button>
 
         <Link to="/" className="site-header__logo" onClick={close}>
-          <img src={logo} alt="" />
+          <WeaveMark size={20} threads={4} className="site-header__mark" />
           <span>First Impression</span>
           <small>Furnishing · Mumbai</small>
         </Link>

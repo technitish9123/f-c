@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import WeaveMark from "../brand/WeaveMark";
 
 const Footer = () => {
   return (
@@ -7,6 +8,7 @@ const Footer = () => {
       <div className="site-footer__inner">
         <div className="site-footer__top">
           <div className="site-footer__brand">
+            <WeaveMark size={44} threads={5} className="site-footer__mark" />
             First Impression
             <br />
             Furnishing LLP
@@ -52,6 +54,7 @@ const Footer = () => {
         </div>
         <div className="site-footer__bottom">
           <span>© {new Date().getFullYear()} First Impression Furnishing LLP</span>
+          <WeaveMark size={240} threads={7} className="site-footer__watermark" />
           <img src="https://i.ibb.co/Qfvn4z6/payment.png" alt="Accepted payment methods" />
         </div>
       </div>

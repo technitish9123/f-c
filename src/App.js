@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { auth } from "./firebase";
 import { useDispatch } from "react-redux";
 import { currentUser } from "./functions/auth";
-import { LoadingOutlined } from "@ant-design/icons";
+import WeaveMark from "./components/brand/WeaveMark";
 import Announcement from "./components/homeComponents/Announcement";
 import Footer from "./components/footer/Footer";
 import Contact from "./pages/Contact";
@@ -78,8 +78,8 @@ const App = () => {
   return (
     <Suspense
       fallback={
-        <div className="col text-center p-5 text-primary">
-          <LoadingOutlined className="h4 p-3 text-danger" /> First Impression
+        <div className="page-loader" role="status" aria-label="Loading">
+          <WeaveMark size={36} threads={4} />
         </div>
       }
     >

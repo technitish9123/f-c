@@ -19,7 +19,7 @@ const SideDrawer = () => {
     <Drawer
       visible={drawer}
       onClose={handleCloseDrawer}
-      title={`Cart / ${cart.length} Products`}
+      title={`Your bag (${cart.length})`}
       placement="right"
       closable={true}
     >
@@ -55,7 +55,7 @@ const SideDrawer = () => {
             });
           }}
         >
-          GO TO CART
+          View bag
         </Button>
       </Link>
     </Drawer>
