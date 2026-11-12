@@ -10,7 +10,7 @@ import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a lo
 import { Carousel } from "react-responsive-carousel";
 import laptop from "../../images/laptop.png";
 import ProductListItems from "./ProductListItems";
-import StarRating from "react-star-ratings";
+import StarRating from "../forms/StarRatings";
 import RatingModal from "../modal/RatingModal";
 import { showAverage } from "../../functions/rating";
 import lodash from "lodash";

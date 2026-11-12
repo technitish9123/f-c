@@ -1,15 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import Resizer from "react-image-file-resizer";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { Avatar, Badge } from "antd";
-import { uploadSliderImg } from "../../functions/admin";
-import { toast } from "react-toastify";
 
 const FileUpload = ({ values, setValues, setLoading }) => {
   const { user } = useSelector((state) => ({ ...state }));
   const { images } = values;
-  const [image, setImage] = useState();
+
   const handleFileUploadAndResize = (e) => {
     //resize
     setLoading(true);
@@ -27,7 +25,7 @@ const FileUpload = ({ values, setValues, setLoading }) => {
         (uri) => {
           axios
             .post(
-              `${process.env.REACT_APP_API}/uploadsliderimages`,
+              `${import.meta.env.REACT_APP_API}/uploadimages`,
               { image: uri },
               {
                 headers: {
@@ -38,9 +36,7 @@ const FileUpload = ({ values, setValues, setLoading }) => {
             .then((res) => {
               setLoading(false);
               allUploadedImages.push(res.data);
-
               setValues({ ...values, images: allUploadedImages });
-              setImage(allUploadedImages);
             })
             .catch((err) => {
               setLoading(false);
@@ -52,36 +48,11 @@ const FileUpload = ({ values, setValues, setLoading }) => {
     }
   };
 
-  //   const  handleupload=()=>{
-  //     console.log(images)
-  //    uploadSliderImg(images, user.token)
-  //   .then((res) => {
-  //     console.log(res);
-  //     setLoading(false);
-  //     window.location.reload();
-  //   })
-  //   .catch((err) => {
-  //     console.log(err.response);
-  //     setLoading(false);
-  //     // if(err.response.status === 400) toast.error(`${err.response.data}`)
-  //     toast.error(err.response.data.err);
-  //   });
-
-  //   }
-
-  const handleupload = () => {
-    uploadSliderImg(images).then((res) => {
-      if (res.data.ok) {
-        toast.success("Address Saved Successully");
-      }
-    });
-  };
-
   const handleImageRemove = (public_id) => {
     setLoading(true);
     axios
       .post(
-        `${process.env.REACT_APP_API}/removesliderimages`,
+        `${import.meta.env.REACT_APP_API}/removeimages`,
         { public_id },
         {
           headers: {
@@ -92,7 +63,7 @@ const FileUpload = ({ values, setValues, setLoading }) => {
       .then((res) => {
         setLoading(false);
         let filteredImages = images.filter((image) => {
-          return image.public_id !== public_id;
+          return (image.public_id !== public_id);
         });
         setValues({ ...values, images: filteredImages });
       })
@@ -129,7 +100,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
             onChange={handleFileUploadAndResize}
           />
         </label>
-        <button onClick={handleupload}>Submit okok</button>
       </div>
     </>
   );

@@ -19,7 +19,7 @@ const ForgotPassword = ({ history }) => {
     setLoading(true);
 
     const config = {
-      url: process.env.REACT_APP_FORGOT_PASSWORD_REDIRECT,
+      url: import.meta.env.REACT_APP_FORGOT_PASSWORD_REDIRECT,
       handleCodeInApp: true,
     };
 

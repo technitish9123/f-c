@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const createPaymentsIntent = async (authtoken, coupon) =>
   await axios.post(
-    `${process.env.REACT_APP_API}/create-payment-integration`,
+    `${import.meta.env.REACT_APP_API}/create-payment-integration`,
     {couponApplied: coupon},
     {
       headers: {
@@ -13,7 +13,7 @@ export const createPaymentsIntent = async (authtoken, coupon) =>
 
   export const createPaymentsIntents = async (authtoken, coupon) =>
   await axios.post(
-    `${process.env.REACT_APP_API}/create-payment-integrations`,
+    `${import.meta.env.REACT_APP_API}/create-payment-integrations`,
     {couponApplied: coupon},
     {
       headers: {

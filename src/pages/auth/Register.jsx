@@ -16,7 +16,7 @@ const Register = ({ history }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const config = {
-      url: process.env.REACT_APP_REGISTER_REDIRECT_URL,
+      url: import.meta.env.REACT_APP_REGISTER_REDIRECT_URL,
       handleCodeInApp: true,
     };
 
