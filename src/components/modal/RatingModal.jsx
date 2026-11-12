@@ -3,7 +3,8 @@ import { Modal, Button } from "antd";
 import { toast } from "react-toastify";
 import { StarOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
-import { useHistory, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useLegacyHistory as useHistory } from "../routes/legacy";
 
 const RatingModal = ({ children }) => {
   const { user } = useSelector((state) => ({ ...state }));

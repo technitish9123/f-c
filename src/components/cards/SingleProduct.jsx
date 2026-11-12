@@ -16,7 +16,7 @@ import { showAverage } from "../../functions/rating";
 import lodash from "lodash";
 import { useSelector, useDispatch } from "react-redux";
 import { addItemToWishlist } from "../../functions/user";
-import { useHistory } from "react-router-dom";
+import { useLegacyHistory as useHistory } from "../routes/legacy";
 import { toast } from "react-toastify";
 import "./singleProduct.css";
 

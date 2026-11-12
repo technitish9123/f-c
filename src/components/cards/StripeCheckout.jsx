@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 import { Card, Button } from "antd";
 import { DollarOutlined, CheckOutlined } from "@ant-design/icons";
 import laptop from "../../images/laptop.png";
-import { useHistory } from "react-router-dom";
+import { useLegacyHistory as useHistory } from "../routes/legacy";
 import { createOrder, emptyUserCart } from "../../functions/user";
 
 const StripeCheckout = () => {

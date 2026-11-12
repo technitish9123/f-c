@@ -1,5 +1,6 @@
 import React, { useEffect, lazy, Suspense } from "react";
-import { Switch, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import { LegacyPage } from "./components/routes/legacy";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { auth } from "./firebase";
@@ -87,52 +88,35 @@ const App = () => {
       <Header />
       <ToastContainer />
       <SideDrawer />
-      <Switch>
-        <UserRoute exact path="/user/history" component={History} />
-        <UserRoute exact path="/user/password" component={Password} />
-        <UserRoute exact path="/user/wishlist" component={Wishlist} />
-        <UserRoute exact path="/checkout" component={Checkout} />
-        <UserRoute exact path="/payment" component={Payment} />
-        <AdminRoute exact path="/admin/dashboard" component={AdminDashboard} />
-        <AdminRoute exact path="/admin/category" component={CategoryCreate} />
-        <AdminRoute
-          exact
-          path="/admin/category/:slug"
-          component={CategoryUpdate}
-        />
-        <AdminRoute exact path="/admin/sub" component={SubCreate} />
-        <AdminRoute exact path="/admin/sub/:slug" component={SubUpdate} />
-        <AdminRoute exact path="/admin/product" component={ProductCreate} />
-        <AdminRoute exact path="/admin/products" component={AllProducts} />
-        <AdminRoute
-          exact
-          path="/admin/sliderimageupload"
-          component={SliderImageAdd}
-        />
-        <AdminRoute
-          exact
-          path="/admin/product/:slug"
-          component={ProductUpdate}
-        />
-        <AdminRoute exact path="/admin/coupon" component={CreateCoupon} />
-        <Route exact path="/product/:slug" component={Product} />
-        <Route exact path="/category/:slug" component={CategoryHome} />
-        <Route exact path="/sub/:slug" component={SubHome} />
-        <Route exact path="/shop" component={Shop} />
-        <Route exact path="/cart" component={Cart} />
-        <Route
-          exact
-          path="/terms-and-condition"
-          component={TermsAndCondition}
-        />
-
-        <Route exact path="/" component={Home} />
-        <Route exact path="/login" component={Login} />
-        <Route exact path="/register" component={Register} />
-        <Route exact path="/register/complete" component={RegisterComplete} />
-        <Route exact path="/forgot/password" component={ForgotPassword} />
-      </Switch>
-      <Route exact path="/contact" component={Contact} />
+      <Routes>
+        <Route path="/user/history" element={<UserRoute><LegacyPage component={History} /></UserRoute>} />
+        <Route path="/user/password" element={<UserRoute><LegacyPage component={Password} /></UserRoute>} />
+        <Route path="/user/wishlist" element={<UserRoute><LegacyPage component={Wishlist} /></UserRoute>} />
+        <Route path="/checkout" element={<UserRoute><LegacyPage component={Checkout} /></UserRoute>} />
+        <Route path="/payment" element={<UserRoute><LegacyPage component={Payment} /></UserRoute>} />
+        <Route path="/admin/dashboard" element={<AdminRoute><LegacyPage component={AdminDashboard} /></AdminRoute>} />
+        <Route path="/admin/category" element={<AdminRoute><LegacyPage component={CategoryCreate} /></AdminRoute>} />
+        <Route path="/admin/category/:slug" element={<AdminRoute><LegacyPage component={CategoryUpdate} /></AdminRoute>} />
+        <Route path="/admin/sub" element={<AdminRoute><LegacyPage component={SubCreate} /></AdminRoute>} />
+        <Route path="/admin/sub/:slug" element={<AdminRoute><LegacyPage component={SubUpdate} /></AdminRoute>} />
+        <Route path="/admin/product" element={<AdminRoute><LegacyPage component={ProductCreate} /></AdminRoute>} />
+        <Route path="/admin/products" element={<AdminRoute><LegacyPage component={AllProducts} /></AdminRoute>} />
+        <Route path="/admin/sliderimageupload" element={<AdminRoute><LegacyPage component={SliderImageAdd} /></AdminRoute>} />
+        <Route path="/admin/product/:slug" element={<AdminRoute><LegacyPage component={ProductUpdate} /></AdminRoute>} />
+        <Route path="/admin/coupon" element={<AdminRoute><LegacyPage component={CreateCoupon} /></AdminRoute>} />
+        <Route path="/product/:slug" element={<LegacyPage component={Product} />} />
+        <Route path="/category/:slug" element={<LegacyPage component={CategoryHome} />} />
+        <Route path="/sub/:slug" element={<LegacyPage component={SubHome} />} />
+        <Route path="/shop" element={<LegacyPage component={Shop} />} />
+        <Route path="/cart" element={<LegacyPage component={Cart} />} />
+        <Route path="/terms-and-condition" element={<LegacyPage component={TermsAndCondition} />} />
+        <Route path="/" element={<LegacyPage component={Home} />} />
+        <Route path="/login" element={<LegacyPage component={Login} />} />
+        <Route path="/register" element={<LegacyPage component={Register} />} />
+        <Route path="/register/complete" element={<LegacyPage component={RegisterComplete} />} />
+        <Route path="/forgot/password" element={<LegacyPage component={ForgotPassword} />} />
+        <Route path="/contact" element={<LegacyPage component={Contact} />} />
+      </Routes>
       <Footer />
     </Suspense>
   );

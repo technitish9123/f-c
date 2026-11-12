@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useHistory } from "react-router-dom";
+import { useLegacyHistory as useHistory } from "./legacy";
 
 const LoadingToRedirect = () => {
   const [count, setCount] = useState(5);
