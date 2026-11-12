@@ -97,10 +97,8 @@ const Cart = ({ history }) => {
           ) : (
             <Link
               className="mt-2"
-              to={{
-                pathname: "/login",
-                state: { from: "/cart" },
-              }}
+              to="/login"
+              state={{ from: "/cart" }}
             >
               <Button block className="btn btn-primary btn-raised">
                 Log in to Checkout

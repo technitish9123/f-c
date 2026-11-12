@@ -4,7 +4,7 @@ import { MenuOutlined, CloseOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import firebase from "firebase";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { useLegacyHistory as useHistory } from "../routes/legacy";
 import Search from "../forms/Search";
 import "./nav.css";
 import WeaveMark from "../brand/WeaveMark";
