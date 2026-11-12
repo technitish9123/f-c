@@ -51,7 +51,7 @@ const Product = ({ match }) => {
   };
 
   return (
-    <div className="container-fluid">
+    <div className="container page-product">
       <div className="row pt-4">
         <SingleProduct
           product={product}
@@ -59,19 +59,13 @@ const Product = ({ match }) => {
           onStarClick={onStarClick}
         />
       </div>
-      <div className="row p-5">
-        <div className="col text-center pt-5 pb-5">
-          <hr />
-          <h4>Related Products</h4>
-          <hr />
-        </div>
-      </div>
-      <div className="row pb-5">
-        <div className="container">
+      <h4 className="section-title">Related Products</h4>
+      <div className="pb-5">
+        <div>
           {loading ? (
             <LoadingCard count={3} />
           ) : (
-            <div className="row">
+            <div className="row product-grid">
               {relatedProduct.length ? (
                 relatedProduct.map((p) => (
                   <div className="col-md-4" key={p._id}>

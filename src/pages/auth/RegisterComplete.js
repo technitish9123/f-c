@@ -90,9 +90,9 @@ const RegisterComplete = ({ history }) => {
   );
 
   return (
-    <div className="container p-5">
+    <div className="container auth-page">
       <div className="row">
-        <div className="col-md-6 offset-md-3">
+        <div className="auth-card">
           <h4>Register Complete</h4>
           {completeRegistrationForm()}
         </div>

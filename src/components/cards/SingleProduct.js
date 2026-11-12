@@ -86,7 +86,7 @@ const SingleProduct = ({ product, rating, onStarClick }) => {
 
   return (
     <>
-      <div className="col-md-7 display-1">
+      <div className="col-md-7 pd-gallery">
         {images && images.length ? (
           <Carousel infiniteLoop autoPlay showArrows={true}>
             {images && images.map((i) => <img src={i.url} key={i.public_id} />)}
@@ -132,47 +132,52 @@ const SingleProduct = ({ product, rating, onStarClick }) => {
         </Tabs>
       </div>
       <div className="col-md-5">
-        <h2 className=" p-3  ">{title}</h2>
-
-        {/*rating */}
-        {product && product.ratings && product.ratings.length > 0 ? (
-          showAverage(product)
-        ) : (
-          <div className="text-center pt-1 pb-3">No Rating Yet.</div>
-        )}
-
-        <Card
-          actions={[
-            <Tooltip title={tooltip}>
-              <a onClick={() => handleAddToCart()}>
-                <ShoppingCartOutlined className="text-primary" /> <br />{" "}
-                {product.quantity === 0 ? (
-                  <div className="text-danger">Out Of Stock</div>
-                ) : (
-                  "Add to Cart"
-                )}
-              </a>
-            </Tooltip>,
+        <div className="buybox">
+          {product.category && (
+            <div className="eyebrow">{product.category.name}</div>
+          )}
+          <h1 className="buybox__title">{title}</h1>
+          {product && product.ratings && product.ratings.length > 0 ? (
+            showAverage(product)
+          ) : (
+            <div className="buybox__muted">No ratings yet</div>
+          )}
+          <div className="buybox__price">₹{product.price}</div>
+          {product.quantity === 0 && (
+            <span className="pcard__badge buybox__stock">Sold out</span>
+          )}
+          <Tooltip title={tooltip}>
+            <button
+              className="buybox__cta"
+              disabled={product.quantity === 0}
+              onClick={() => handleAddToCart()}
+            >
+              {product.quantity === 0 ? "Sold out" : "Add to bag"}
+            </button>
+          </Tooltip>
+          <div className="buybox__row">
             <Tooltip title={wishlistTooltip}>
-              <div onClick={handleWishlist}>
-                <HeartOutlined className="text-success" /> <br /> Add to
-                Wishlist
-              </div>
-            </Tooltip>,
-            <RatingModal>
-              <StarRating
-                name={_id}
-                numberOfStars={5}
-                rating={rating}
-                changeRating={onStarClick}
-                isSelectable={true}
-                starRatedColor="red"
-              />
-            </RatingModal>,
-          ]}
-        >
-          <ProductListItems product={product} />
-        </Card>
+              <button className="buybox__ghost" onClick={handleWishlist}>
+                Add to wishlist
+              </button>
+            </Tooltip>
+            <div className="buybox__ghost buybox__rate">
+              <RatingModal>
+                <StarRating
+                  name={_id}
+                  numberOfStars={5}
+                  rating={rating}
+                  changeRating={onStarClick}
+                  isSelectable={true}
+                  starRatedColor="#1c1b19"
+                />
+              </RatingModal>
+            </div>
+          </div>
+          <div className="buybox__details">
+            <ProductListItems product={product} />
+          </div>
+        </div>
       </div>
     </>
   );

@@ -129,23 +129,23 @@ const Login = ({ history }) => {
         className="mb-3"
         block
         shape="round"
-        icon={<MailOutlined />}
+        
         size="large"
         disabled={!email || password.length < 6}
       >
-        Login with Email/Password
+        Sign in
       </Button>
     </form>
   );
 
   return (
-    <div className="container p-5">
+    <div className="container auth-page">
       <div className="row">
-        <div className="col-md-6 offset-md-3">
+        <div className="auth-card">
           {loading ? (
             <h4 className="text-danger">Loading...</h4>
           ) : (
-            <h4>Login</h4>
+            <h4>Sign in</h4>
           )}
           {loginForm()}
 
@@ -158,7 +158,7 @@ const Login = ({ history }) => {
             icon={<GoogleOutlined />}
             size="large"
           >
-            Login with Google
+            Continue with Google
           </Button>
 
           <Link to="/forgot/password" className="float-right text-danger">

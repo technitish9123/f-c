@@ -44,7 +44,7 @@ const ForgotPassword = ({ history }) => {
   };
 
   return (
-    <div className="container col-md-6 offset-md-3 p-5">
+    <div className="container auth-page"><div className="auth-card">
       {loading ? (
         <h4 className="text-danger">Loading</h4>
       ) : (
@@ -73,7 +73,7 @@ const ForgotPassword = ({ history }) => {
           Submit
         </button>
       </form>
-    </div>
+    </div></div>
   );
 };
 

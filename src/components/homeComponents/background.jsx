@@ -9,6 +9,7 @@ import thumb3 from "../assets/images/video3.png";
 import thumb4 from "../assets/images/video4.png";
 import   "../../styles/background.scss"
 import styled from "styled-components";
+import { Link } from "react-router-dom";
 import LeftNav from "./LeftNav";
 
 
@@ -65,7 +66,14 @@ const Background = () => {
 
 
   return (
-    <Container>
+    <Container className="hero">
+      <div className="hero__copy">
+        <div className="eyebrow">First Impression · Mumbai</div>
+        <h1>
+          Fabrics that furnish <em>a feeling</em>
+        </h1>
+        <Link to="/shop">Discover the collection</Link>
+      </div>
       <div>
         <div className="background">
           <video

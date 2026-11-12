@@ -180,6 +180,7 @@ const Shop = () => {
   const [sub, setSub] = useState("");
   const [color, setColor] = useState("");
   const [brand, setBrand] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -433,8 +434,14 @@ const Shop = () => {
   return (
     <div className="container-fluid">
       <div className="row">
-        <div className="col-md-3 p-3 mt-5 mb-5">
-          <h4 className="text-primary text-center mt-2">Search/Filter</h4>
+        <button
+          className="shop-filter-toggle"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          {showFilters ? "Hide filters" : "Filters"}
+        </button>
+        <div className={`col-md-3 shop-filters ${showFilters ? "open" : ""}`}>
+          <h4 className="shop-filters__title">Filters</h4>
           <hr />
 
           <Menu mode="inline" defaultOpenKeys={["1", "2", "3", "4", "5"]}>
@@ -515,12 +522,12 @@ const Shop = () => {
           {loading ? (
             <Spin />
           ) : (
-            <h4 className="text-center p-3 mt-5 mb-5 display-4 jumbotron text-danger">
+            <h4 className="section-title">
               Products
             </h4>
           )}
 
-          <div className="row">
+          <div className="row product-grid">
             {products.length > 0 &&
               products.map((p) => (
                 <div className="col-md-4" key={p._id}>

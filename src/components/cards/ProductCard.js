@@ -1,13 +1,11 @@
 import React, { useState } from "react";
-import { Card, Tooltip } from "antd";
+import { Tooltip } from "antd";
 import { Link } from "react-router-dom";
-import { EyeOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import laptop from "../../images/laptop.png";
 import { showAverage } from "../../functions/rating";
 import lodash from "lodash";
 import { useSelector, useDispatch } from "react-redux";
 
-const { Meta } = Card;
 const ProductCard = ({ product }) => {
   const [tooltip, setTooltip] = useState("Click To Add");
   const { user, cart } = useSelector((state) => ({ ...state }));
@@ -47,48 +45,39 @@ const ProductCard = ({ product }) => {
     });
   };
 
-  const { images, description, slug, title, price } = product;
+  const { images, slug, title, price } = product;
+  const out = product.quantity === 0;
   return (
-    <>
-      {/* {product && product.ratings && product.ratings.length > 0 ? (
-        showAverage(product)
-      ) : (
-        <div className="text-center pt-1 pb-3">No Rating Yet.</div>
-      )} */}
-      <Card
-        cover={
-          // eslint-disable-next-line jsx-a11y/alt-text
-          <img
-            src={images && images.length > 0 ? images[0].url : laptop}
-            style={{ height: "200px", objectFit: "cover" }}
-            className="p-3"
-          />
-        }
-        actions={[
-          <Link to={`/product/${slug}`}>
-            <EyeOutlined className="text-primary" /> <br /> View Product
-          </Link>,
-          <>
-            <Tooltip title={tooltip}>
-              <a onClick={() => handleAddToCart()}>
-                <ShoppingCartOutlined className="text-danger" /> <br />
-                {product.quantity === 0 ? (
-                  <div className="text-danger ">Out Of Stock</div>
-                ) : (
-                  "Add to Cart"
-                )}
-              </a>
-            </Tooltip>
-          </>,
-        ]}
-      >
-        <Meta
-          title={title}
-          description={<b>₹{price}</b>}
-          // description={`${description && description.substring(0, 30)}...`}
+    <div className="pcard">
+      <Link to={`/product/${slug}`} className="pcard__media">
+        <img
+          src={images && images.length > 0 ? images[0].url : laptop}
+          alt={title}
+          loading="lazy"
         />
-      </Card>
-    </>
+        {images && images.length > 1 && (
+          <img className="pcard__alt" src={images[1].url} alt="" loading="lazy" />
+        )}
+        {out && <span className="pcard__badge">Sold out</span>}
+      </Link>
+      <div className="pcard__body">
+        <div className="pcard__row">
+          <Link to={`/product/${slug}`} className="pcard__title">
+            {title}
+          </Link>
+          <span className="pcard__price">₹{price}</span>
+        </div>
+        <Tooltip title={tooltip}>
+          <button
+            className="pcard__btn"
+            disabled={out}
+            onClick={() => handleAddToCart()}
+          >
+            {out ? "Sold out" : "Add to bag"}
+          </button>
+        </Tooltip>
+      </div>
+    </div>
   );
 };
 

@@ -65,10 +65,10 @@ const Register = ({ history }) => {
   );
 
   return (
-    <div className="container p-5">
+    <div className="container auth-page">
       <div className="row">
-        <div className="col-md-6 offset-md-3">
-          <h4>Register</h4>
+        <div className="auth-card">
+          <h4>Create an account</h4>
           {registerForm()}
         </div>
       </div>
