@@ -25,13 +25,13 @@ const SubHome = ({ match }) => {
           {loading ? (
             <Spin className="text-center" />
           ) : (
-            <h4 className="text-center p-3 mt-5 mb-5 display-4 jumbotron text-danger">
+            <h4 className="section-title">
               {products.length} Products in "{sub.name}" Sub Category
             </h4>
           )}
         </div>
       </div>
-      <div className="row">
+      <div className="row product-grid">
         {products.map((p) => (
           <div className="col-md-4" key={p._id}>
             <ProductCard product={p} />

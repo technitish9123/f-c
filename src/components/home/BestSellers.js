@@ -42,7 +42,7 @@ const BestSellers = () => {
         {loading ? (
           <LoadingCard count={3} />
         ) : (
-          <div className="row">
+          <div className="row product-grid">
             {products.map((p) => (
               <div className="col-md-4" key={p._id}>
                 <ProductCard product={p} />

@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { getCategories } from "../../functions/category";
 import { Spin } from "antd";
 import styled from "styled-components";
-import { mobile } from "../../responsive";
+import tileA from "../assets/images/s6.jpg";
+import tileB from "../assets/images/s7.jpg";
+import tileC from "../assets/images/s1.jpg";
 
 
 const Container = styled.div`
@@ -76,33 +78,28 @@ const CategoryList = () => {
     return () => getCategories();
   }, []);
 
-  const showCategories = () =>
-    categories.map((c) => (
-      <ContainerSub key={c._id}>
-        <Link to={`category/${c.slug}`}>
-        {/* <Image src="https://mp.jab.de/share/7e1ae4cc-eb2a-4c9a-babc-9f57921f82d5/api/modules/file/objects/d9acd625-55cb-4dc7-b29e-41ac4ef681de/media/medium?index=0&t=1640014446557" /> */}
-        <Info> 
-        <Title  key={c._id}>{c.name}</Title>
-        <Button>SHOP NOW</Button>
-        </Info>
-          {/* <div
-            className="btn btn-outlined-primary btn-lg btn-block btn-raised m-4 text-primary"
-            key={c._id}
-          >
-            {c.name}
-          </div> */}
-        
+  const tileImages = [tileA, tileB, tileC];
+
+  return loading ? (
+    <div style={{ textAlign: "center", padding: 48 }}>
+      <Spin />
+    </div>
+  ) : (
+    <div className="mosaic">
+      {categories.map((c, i) => (
+        <Link
+          to={`/category/${c.slug}`}
+          className="mosaic__tile reveal"
+          key={c._id}
+        >
+          <img src={tileImages[i % tileImages.length]} alt="" loading="lazy" />
+          <div className="mosaic__label">
+            <span>Shop now</span>
+            <strong>{c.name}</strong>
+          </div>
         </Link>
-      </ContainerSub>
-        
-      
-    ));
-  return (
-    <Container>
-      
-        {loading ? <Spin className="text-center" /> : showCategories()}
-     
-      </Container>
+      ))}
+    </div>
   );
 };
 

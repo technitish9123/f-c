@@ -142,9 +142,12 @@ const Checkout = ({ history }) => {
   };
 
   return (
+    <div className="container page-checkout">
+    <h4 className="section-title">Checkout</h4>
     <div className="row">
-      <div className="col-md-6 p-5">
-        <h4>Shipping Address</h4>
+      <div className="col-md-6">
+        <div className="checkout-panel">
+        <h4 className="checkout-panel__title">Shipping Address</h4>
         <div className="p-2 mt-2">
           <Input
             type="text"
@@ -194,7 +197,8 @@ const Checkout = ({ history }) => {
 
         {/* <ReactQuill placeholder="address" theme="snow" value={address} onChange={setAddress} /> */}
         <textarea
-          cols="90"
+          className="form-control checkout-address"
+          rows="4"
           required
           placeholder="Enter Your Address"
           onChange={(e) => setAddress(e.target.value)}
@@ -216,10 +220,11 @@ const Checkout = ({ history }) => {
         <h4>Got Coupon?</h4>
         <br />
         {showApplyCoupon()}
+        </div>
       </div>
 
       <div className="col-md-6">
-        <Card className="m-3">
+        <Card className="summary-card">
           <div className="pt-4 pb-4 ">
             <h4>Order Summary</h4>
 
@@ -303,6 +308,7 @@ const Checkout = ({ history }) => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

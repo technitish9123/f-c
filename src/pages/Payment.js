@@ -9,7 +9,7 @@ const promise = loadStripe(process.env.REACT_APP_STRIPE_KEY);
 
 const Payment = () => {
   return (
-    <div className="container p-5 text-center">
+    <div className="container page-payment text-center">
       <h4>Complete your purchase</h4>
       <p className="text-secondary">"Do not Refresh or Navigate"</p>
 

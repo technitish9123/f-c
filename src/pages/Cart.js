@@ -18,7 +18,7 @@ const Cart = ({ history }) => {
   };
 
   const showProductsTable = () => (
-    <table className="table table-bordered">
+    <table className="table cart-table">
       <thead className="thead-light">
         <tr>
           <th>Image</th>
@@ -46,25 +46,24 @@ const Cart = ({ history }) => {
   };
 
   return (
-    <div className="container-fluid">
-      <h4 className="text-center p-3 mt-1 display-4 jumbotron text-danger">
-        {cart.length} "Products" in Cart
+    <div className="container page-cart">
+      <h4 className="section-title">
+        Your Bag ({cart.length})
       </h4>
       <div className="row">
         <div className="col-md-8">
           {cart.length === 0 ? (
-            <p>
-              <span>No Products In Your Cart. Lets </span>
-              <Link to="/shop">Continue Shopping</Link>
-            </p>
+            <div className="empty-state">
+              <p>Your bag is empty.</p>
+              <Link to="/shop" className="buybox__cta">Continue shopping</Link>
+            </div>
           ) : (
             showProductsTable()
           )}
         </div>
         <div className="col-md-4">
-          <h4>Order Summary</h4>
-
-          <Card className="mt-4">
+          <Card className="summary-card">
+            <h4 className="summary-card__title">Order Summary</h4>
             <div className="pt-4 pb-4">
               {cart.length > 0 ? (
                 cart.map((c, i) => (
