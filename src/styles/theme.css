@@ -969,6 +969,8 @@ body.menu-open { overflow: hidden; }
 .site-footer__credit a:hover { color: #fff; border-bottom-color: #fff; }
 
 /* ---------- Dialog (native <dialog>) ---------- */
+/* Bootstrap's reboot sets dialog { display: block }; a closed dialog must stay hidden. */
+.fi-dialog:not([open]) { display: none; }
 .fi-dialog { border: 0; padding: 0; width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 48px); background: var(--paper); color: var(--ink); }
 .fi-dialog::backdrop { background: rgba(28, 27, 25, .45); }
 .fi-dialog__body { padding: 28px clamp(20px, 4vw, 36px) 32px; }
