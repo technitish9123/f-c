@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import LoadingCard from "../../components/cards/LoadingCard";
 import ProductCard from "../../components/cards/ProductCard";
 import { getSub } from "../../functions/sub";
 import { Spin } from "antd";
@@ -6,7 +7,7 @@ import { Spin } from "antd";
 const SubHome = ({ match }) => {
   const [sub, setSub] = useState({});
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const { slug } = match.params;
 
@@ -23,7 +24,7 @@ const SubHome = ({ match }) => {
       <div className="row">
         <div className="col">
           {loading ? (
-            <Spin className="text-center" />
+            <LoadingCard count={8} title />
           ) : (
             <h4 className="section-title">
               {products.length} Products in "{sub.name}" Sub Category

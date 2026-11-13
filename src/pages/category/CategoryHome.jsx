@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { getCategory } from "../../functions/category";
+import LoadingCard from "../../components/cards/LoadingCard";
 import ProductCard from "../../components/cards/ProductCard";
 import { Spin } from "antd";
 
 const CategoryHome = ({ match }) => {
   const [category, setCategory] = useState({});
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const { slug } = match.params;
 
@@ -23,7 +24,7 @@ const CategoryHome = ({ match }) => {
       <div className="row">
         <div className="col">
           {loading ? (
-            <Spin className="text-center" />
+            <LoadingCard count={8} title />
           ) : (
             <h4 className="section-title">
               {products.length} Products in "{category.name}" Category

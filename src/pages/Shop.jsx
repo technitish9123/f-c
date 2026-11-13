@@ -7,6 +7,7 @@ import {
 import { getCategories } from "../functions/category";
 import { getSubs } from "../functions/sub";
 import { useSelector, useDispatch } from "react-redux";
+import LoadingCard from "../components/cards/LoadingCard";
 import ProductCard from "../components/cards/ProductCard";
 import { Spin, Slider, Checkbox, Badge, Button } from "antd";
 import Star from "../components/forms/Star";
@@ -168,7 +169,7 @@ const brands = ["Apple", "Microsoft", "Samsung", "Lenovo", "ASUS"];
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [price, setPrice] = useState([]);
   const [ok, setOk] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -474,24 +475,25 @@ const Shop = () => {
         </div>
         <div className="col-md-9">
           {loading ? (
-            <Spin />
+            <LoadingCard count={9} title />
           ) : (
-            <h4 className="section-title">
-              Products
-            </h4>
-          )}
-
-          <div className="row product-grid">
-            {products.length > 0 &&
-              products.map((p) => (
-                <div className="col-md-4" key={p._id}>
-                  <ProductCard product={p} />
+            <>
+              <h4 className="section-title">Products</h4>
+              {products.length > 0 ? (
+                <div className="row product-grid">
+                  {products.map((p) => (
+                    <div className="col-md-4" key={p._id}>
+                      <ProductCard product={p} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            {products.length === 0 && (
-              <p className="text-warning">No Products Found.</p>
-            )}
-          </div>
+              ) : (
+                <div className="empty-state">
+                  <p>No products match these filters.</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

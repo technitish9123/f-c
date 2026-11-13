@@ -63,7 +63,7 @@ const Product = ({ match }) => {
       <div className="pb-5">
         <div>
           {loading ? (
-            <LoadingCard count={3} />
+            <LoadingCard count={4} />
           ) : (
             <div className="row product-grid">
               {relatedProduct.length ? (

@@ -656,3 +656,14 @@ body.menu-open { overflow: hidden; }
 .legal p { margin: 0 0 14px; }
 .btn-outline-primary, .btn-outline-secondary { background: transparent !important; border: 1px solid var(--ink) !important; color: var(--ink) !important; }
 .btn-outline-primary:hover, .btn-outline-secondary:hover { background: var(--ink) !important; color: var(--paper) !important; }
+
+/* ---------- Loading skeletons ---------- */
+.skeleton { background: linear-gradient(100deg, var(--paper-2) 30%, #f6f2ec 50%, var(--paper-2) 70%);
+  background-size: 300% 100%; animation: skeleton-sheen 1.6s var(--ease) infinite; }
+.skeleton--line { height: 10px; }
+.skeleton--title { width: 180px; height: 12px; margin: 64px auto 64px; }
+.skeleton-block .pcard__media.skeleton { aspect-ratio: 4 / 5; }
+.skeleton-block .pcard__body { padding-top: 18px; }
+@keyframes skeleton-sheen { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+@media (max-width: 767px) { .skeleton--title { margin: 40px auto; } }
