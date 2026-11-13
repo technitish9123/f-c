@@ -17,7 +17,7 @@ const SideDrawer = () => {
 
   return (
     <Drawer
-      visible={drawer}
+      open={drawer}
       onClose={handleCloseDrawer}
       title={`Your bag (${cart.length})`}
       placement="right"

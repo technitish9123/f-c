@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { updatePassword } from "firebase/auth";
 import AccountLayout from "../../components/nav/AccountLayout";
 import { auth } from "../../firebase";
 import { toast } from "react-toastify";
@@ -11,8 +12,7 @@ const Password = () => {
     e.preventDefault();
     setLoading(true);
 
-    await auth.currentUser
-      .updatePassword(password)
+    await updatePassword(auth.currentUser, password)
       .then(() => {
         setLoading(false);
         setPassword("");

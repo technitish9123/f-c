@@ -1,5 +1,5 @@
-import firebase from "firebase/app";
-import "firebase/auth";
+import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Firebase web config comes from the environment (Render env vars / .env).
 // These values are public identifiers, not secrets, but keeping them out of
@@ -18,7 +18,7 @@ if (!firebaseConfig.apiKey) {
   console.error("Firebase config missing: set the REACT_APP_FIREBASE_* environment variables.");
 }
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-export const auth = firebase.auth();
-export const googleAuthProvider = new firebase.auth.GoogleAuthProvider();
+export const auth = getAuth(app);
+export const googleAuthProvider = new GoogleAuthProvider();

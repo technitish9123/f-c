@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Badge, Dropdown, Menu } from "antd";
+import { Badge, Dropdown } from "antd";
 import { MenuOutlined, CloseOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
-import firebase from "firebase";
+import { signOut } from "firebase/auth";
+import { auth } from "../../firebase";
 import { useDispatch, useSelector } from "react-redux";
 import { useLegacyHistory as useHistory } from "../routes/legacy";
 import Search from "../forms/Search";
@@ -19,7 +20,7 @@ const Header = () => {
   let history = useHistory();
 
   const logout = () => {
-    firebase.auth().signOut();
+    signOut(auth);
     dispatch({
       type: "LOGOUT",
       payload: null,
@@ -30,21 +31,13 @@ const Header = () => {
   const dashboard =
     user && (user.role === "admin" ? "/admin/dashboard" : "/user/history");
 
-  const userMenu = (
-    <Menu>
-      {dashboard && (
-        <Menu.Item key="dash">
-          <Link to={dashboard}>Account</Link>
-        </Menu.Item>
-      )}
-      <Menu.Item key="wish">
-        <Link to="/user/wishlist">Wishlist</Link>
-      </Menu.Item>
-      <Menu.Item key="logout" onClick={logout}>
-        Sign out
-      </Menu.Item>
-    </Menu>
-  );
+  const userMenu = {
+    items: [
+      dashboard && { key: "dash", label: <Link to={dashboard}>Account</Link> },
+      { key: "wish", label: <Link to="/user/wishlist">Wishlist</Link> },
+      { key: "logout", label: "Sign out", onClick: logout },
+    ].filter(Boolean),
+  };
 
   const close = () => setOpen(false);
 
@@ -88,7 +81,7 @@ const Header = () => {
             Search
           </button>
           {user ? (
-            <Dropdown overlay={userMenu} trigger={["click"]}>
+            <Dropdown menu={userMenu} trigger={["click"]}>
               <button className="u site-header__hide-m">Account</button>
             </Dropdown>
           ) : (

@@ -10,7 +10,6 @@ import thumb4 from "../assets/images/video4.png";
 import   "../../styles/background.scss"
 import styled from "styled-components";
 import { Link } from "react-router-dom";
-import LeftNav from "./LeftNav";
 
 
 // import "react-responsive-carousel/lib/styles/carousel.css"; // requires a loader

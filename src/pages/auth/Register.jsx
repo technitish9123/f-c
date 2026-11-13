@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { sendSignInLinkToEmail } from "firebase/auth";
 import { auth } from "../../firebase";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
@@ -20,7 +21,7 @@ const Register = ({ history }) => {
       handleCodeInApp: true,
     };
 
-    await auth.sendSignInLinkToEmail(email, config);
+    await sendSignInLinkToEmail(auth, email, config);
     toast.success(
       `Email is sent to ${email}. Click the link to complete your registration.`
     );

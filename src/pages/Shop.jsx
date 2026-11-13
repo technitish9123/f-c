@@ -8,11 +8,9 @@ import { getCategories } from "../functions/category";
 import { getSubs } from "../functions/sub";
 import { useSelector, useDispatch } from "react-redux";
 import ProductCard from "../components/cards/ProductCard";
-import { Spin, Menu, Slider, Checkbox, Badge, Button } from "antd";
-import { DownSquareOutlined, StarOutlined } from "@ant-design/icons";
+import { Spin, Slider, Checkbox, Badge, Button } from "antd";
 import Star from "../components/forms/Star";
 
-const { SubMenu } = Menu;
 
 const colors = [
   "AliceBlue",
@@ -442,81 +440,37 @@ const Shop = () => {
         </button>
         <div className={`col-md-3 shop-filters ${showFilters ? "open" : ""}`}>
           <h4 className="shop-filters__title">Filters</h4>
-          <hr />
 
-          <Menu mode="inline" defaultOpenKeys={["1", "2", "3", "4", "5"]}>
-            {/* Price */}
-            <SubMenu key="1" title={<span className="h6">₹ Price</span>}>
-              <div>
-                <Slider
-                  className="ml-4 mr-4"
-                  tipFormatter={(v) => ` ₹ ${v}`}
-                  range={{ draggableTrack: true }}
-                  max="20000"
-                  value={price}
-                  onChange={handleSlider}
-                />
-              </div>
-            </SubMenu>
+          <details className="filter" open>
+            <summary>Price</summary>
+            <Slider
+              tooltip={{ formatter: (v) => `₹ ${v}` }}
+              range={{ draggableTrack: true }}
+              max={20000}
+              value={price}
+              onChange={handleSlider}
+            />
+          </details>
 
-            {/* Categories */}
-            <SubMenu
-              key="2"
-              title={
-                <span className="h6">
-                  <DownSquareOutlined /> Categories
-                </span>
-              }
-            >
-              <div style={{ marginTop: "-10px" }}>{showCategories()}</div>
-            </SubMenu>
+          <details className="filter" open>
+            <summary>Categories</summary>
+            {showCategories()}
+          </details>
 
-            {/* Star Rating */}
-            <SubMenu
-              key="3"
-              title={
-                <span className="h6">
-                  <StarOutlined /> Rating
-                </span>
-              }
-            >
-              <div style={{ marginTop: "-10px" }}>{showStars()}</div>
-            </SubMenu>
-            {/*sub Categories  */}
-            <SubMenu
-              key="4"
-              title={
-                <span className="h6">
-                  <StarOutlined /> Sub Categories
-                </span>
-              }
-            >
-              <div style={{ marginTop: "-10px" }}>{showSubs()}</div>
-            </SubMenu>
+          <details className="filter" open>
+            <summary>Rating</summary>
+            {showStars()}
+          </details>
 
-            {/* Colors */}
-            <SubMenu
-              key="5"
-              title={
-                <span className="h6">
-                  <StarOutlined /> Colors
-                </span>
-              }
-            >
-              <div style={{ marginTop: "-10px" , maxHeight:"15rem", overflow:"scroll"}}>{showColors()}</div>
-            </SubMenu>
-            {/* brands */}
-            {/* <SubMenu
-              key="6"
-              title={
-                <span className="h6">
-                  <StarOutlined /> brands
-                </span>
-              }
-            >
-              <div style={{ marginTop: "-10px" }}>{showBrands()}</div>
-            </SubMenu> */}
-          </Menu>
+          <details className="filter">
+            <summary>Sub categories</summary>
+            {showSubs()}
+          </details>
+
+          <details className="filter">
+            <summary>Colours</summary>
+            <div className="filter__scroll">{showColors()}</div>
+          </details>
         </div>
         <div className="col-md-9">
           {loading ? (
