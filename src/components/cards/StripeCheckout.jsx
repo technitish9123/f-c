@@ -155,12 +155,15 @@ const StripeCheckout = () => {
   };
 
   useEffect(() => {
-    createPaymentsIntent(user.token, coupon).then((res) => {
-      setClientSecret(res.data.clientSecret);
-      setCartTotal(res.data.cartTotal);
-      setTotalAfterDiscount(res.data.totalAfterDiscount);
-      setPayable(res.data.payable);
-    });
+    createPaymentsIntent(user.token, coupon, shippingAdd)
+      .then((res) => {
+        setClientSecret(res.data.clientSecret);
+        setCartTotal(res.data.cartTotal);
+        setTotalAfterDiscount(res.data.totalAfterDiscount);
+        setPayable(res.data.payable);
+      })
+      // e.g. "Only 2 left of Seiichi J-1158." when stock ran out
+      .catch((err) => setError(err.response?.data?.err || "Could not start the payment. Please try again."));
   }, []);
 
   return (
