@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { Slider } from "antd";
 import { searchCatalogue } from "../functions/catalogue";
 import LoadingCard from "../components/cards/LoadingCard";
@@ -286,6 +286,11 @@ const Shop = () => {
 
           {loading ? (
             <LoadingCard count={9} />
+          ) : total === 0 && !activeChips.length && scope ? (
+            <div className="empty-state">
+              <p>{scopeName || "This range"} is coming soon online. Visit or call our Kemps Corner showroom to see the collection.</p>
+              <Link to="/contact" className="buybox__cta">Contact the showroom</Link>
+            </div>
           ) : total === 0 ? (
             <div className="empty-state">
               <p>No pieces match these filters.</p>

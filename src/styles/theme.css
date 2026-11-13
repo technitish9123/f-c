@@ -157,8 +157,20 @@ table { display: block; overflow-x: auto; }
 .site-header__searchbar form { display: flex; align-items: center; margin: 0 !important; width: 100%; }
 .site-header__searchbar input.form-control { width: 100% !important; font-family: var(--serif); font-size: 22px; height: 44px; margin: 0 !important; }
 .site-header__searchbar .anticon-search { font-size: 16px; margin-left: -20px; cursor: pointer; }
+/* Shop menu: hover/focus panel under each category */
+.site-header__nav { gap: 28px; }
+.site-header__menu { position: relative; }
+.site-header__panel { position: absolute; top: 100%; left: -22px; padding: 26px 22px 18px; min-width: 210px; background: var(--paper, #f4f1ea);
+  border: 1px solid var(--line); display: flex; flex-direction: column; gap: 16px; z-index: 50;
+  opacity: 0; visibility: hidden; transform: translateY(6px); transition: opacity .25s var(--ease), transform .25s var(--ease), visibility .25s; }
+.site-header__menu:hover .site-header__panel, .site-header__menu:focus-within .site-header__panel { opacity: 1; visibility: visible; transform: none; }
+.site-header__panel a { text-transform: none !important; letter-spacing: .04em !important; font-size: 13px !important; color: var(--ink-2, var(--ink)) !important; }
+.site-header__group { display: flex; flex-direction: column; }
+.site-header__nav > a, .site-header__menu > a { white-space: nowrap; }
+.site-header__drawer .site-header__sub { font-size: 19px; padding: 8px 0 8px 20px !important; color: var(--ink-2, var(--ink)); }
 .site-header__drawer { display: none; }
-@media (max-width: 900px) {
+/* Four categories + Showroom need room: burger menu below 1180px. */
+@media (max-width: 1180px) {
   .site-header__inner { height: 64px; grid-template-columns: 44px 1fr auto; }
   .site-header__nav, .site-header__hide-m { display: none !important; }
   .site-header__burger { display: inline-flex !important; grid-column: 1; grid-row: 1; }
@@ -420,7 +432,7 @@ table { display: block; overflow-x: auto; }
 /* ---------- Mobile menu drawer fix ----------
    backdrop-filter on the sticky header makes it the containing block for
    fixed children, so the drawer is anchored to the header instead. */
-@media (max-width: 900px) {
+@media (max-width: 1180px) {
   .site-header { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--paper); }
   .site-header__drawer {
     position: absolute; inset: 100% auto auto 0; width: 100%;
@@ -431,6 +443,8 @@ table { display: block; overflow-x: auto; }
   }
   .site-header__drawer.open { visibility: visible; transform: none; transition: transform .5s var(--ease), visibility 0s; }
   .site-header__drawer a, .site-header__drawer button { font-size: 28px; padding: 12px 0; width: 100%; }
+}
+@media (max-width: 900px) {
   .site-header__logo span { font-size: 15px; letter-spacing: .16em; white-space: nowrap; }
   .site-header__icons { gap: 14px; }
   .site-header__icons a, .site-header__icons button { font-size: 10px; letter-spacing: .14em; }

@@ -9,6 +9,14 @@ import Search from "../forms/Search";
 import { useFavourites } from "../../functions/useFavourites";
 import WeaveMark from "../brand/WeaveMark";
 
+// Shop menu: categories and their subcategories (slugs match the database).
+const MENU = [
+  { name: "Fabrics", slug: "fabrics", subs: [["Curtains", "curtains"], ["Upholstery fabrics", "upholstery-fabrics"], ["Inside Rails", "inside-rails"], ["Configurator", "fabric-configurator"]] },
+  { name: "Wallpapers", slug: "wallpaper", subs: [["Plain", "plain-wallpapers"], ["Patterned", "patterned-wallpapers"]] },
+  { name: "Sun Protection", slug: "sun-protection", subs: [["Roller blinds", "roller-blinds"], ["Plissé blinds", "plisse-blinds"], ["Panels", "panels"], ["Smart Home", "smart-home"]] },
+  { name: "Floors", slug: "floors", subs: [["Carpets", "carpets"], ["Design Floor LVT", "design-floor-lvt"], ["Configurator", "floor-configurator"]] },
+];
+
 const Header = () => {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -51,9 +59,14 @@ const Header = () => {
     <header className="site-header">
       <div className="site-header__inner">
         <nav className="site-header__nav">
-          <Link to="/shop">Collection</Link>
-          <Link to="/category/fabrics">Fabrics</Link>
-          <Link to="/category/wallpaper">Wallpaper</Link>
+          {MENU.map((c) => (
+            <div className="site-header__menu" key={c.slug}>
+              <Link to={`/category/${c.slug}`}>{c.name}</Link>
+              <div className="site-header__panel">
+                {c.subs.map(([name, slug]) => <Link key={slug} to={`/sub/${slug}`}>{name}</Link>)}
+              </div>
+            </div>
+          ))}
           <Link to="/contact">Showroom</Link>
         </nav>
 
@@ -116,8 +129,12 @@ const Header = () => {
       <div className={`site-header__drawer ${open ? "open" : ""}`}>
         <Link to="/" onClick={close}>Home</Link>
         <Link to="/shop" onClick={close}>Collection</Link>
-        <Link to="/category/fabrics" onClick={close}>Fabrics</Link>
-        <Link to="/category/wallpaper" onClick={close}>Wallpaper</Link>
+        {MENU.map((c) => (
+          <div className="site-header__group" key={c.slug}>
+            <Link to={`/category/${c.slug}`} onClick={close}>{c.name}</Link>
+            {c.subs.map(([name, slug]) => <Link key={slug} to={`/sub/${slug}`} onClick={close} className="site-header__sub">{name}</Link>)}
+          </div>
+        ))}
         <Link to="/contact" onClick={close}>Showroom</Link>
         <Link to="/favourites" onClick={close}>Favourites{fav.count ? ` (${fav.count})` : ""}</Link>
         <Link to="/cart" onClick={close}>Bag</Link>
