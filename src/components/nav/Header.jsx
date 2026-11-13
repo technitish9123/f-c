@@ -7,12 +7,14 @@ import { auth } from "../../firebase";
 import { useDispatch, useSelector } from "react-redux";
 import { useLegacyHistory as useHistory } from "../routes/legacy";
 import Search from "../forms/Search";
+import { useFavourites } from "../../functions/useFavourites";
 import "./nav.css";
 import WeaveMark from "../brand/WeaveMark";
 
 const Header = () => {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const fav = useFavourites();
 
   let dispatch = useDispatch();
   let { user, cart } = useSelector((state) => ({ ...state }));
@@ -34,7 +36,7 @@ const Header = () => {
   const userMenu = {
     items: [
       dashboard && { key: "dash", label: <Link to={dashboard}>Account</Link> },
-      { key: "wish", label: <Link to="/user/wishlist">Favourites</Link> },
+      { key: "wish", label: <Link to="/favourites">Favourites</Link> },
       { key: "logout", label: "Sign out", onClick: logout },
     ].filter(Boolean),
   };
@@ -89,6 +91,12 @@ const Header = () => {
               Sign in
             </Link>
           )}
+          <Link to="/favourites" className="u site-header__fav" onClick={close} aria-label={`Favourites (${fav.count})`}>
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+              <path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z" />
+            </svg>
+            {fav.count > 0 && <span className="site-header__fav-n">{fav.count}</span>}
+          </Link>
           <Link to="/cart" className="u" onClick={close}>
             Bag{" "}
             <Badge
@@ -113,6 +121,7 @@ const Header = () => {
         <Link to="/category/fabrics" onClick={close}>Fabrics</Link>
         <Link to="/category/wallpaper" onClick={close}>Wallpaper</Link>
         <Link to="/contact" onClick={close}>Showroom</Link>
+        <Link to="/favourites" onClick={close}>Favourites{fav.count ? ` (${fav.count})` : ""}</Link>
         <Link to="/cart" onClick={close}>Bag</Link>
         <div className="eyebrow">Account</div>
         {user ? (

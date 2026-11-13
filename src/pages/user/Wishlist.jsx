@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { getUserWishlist, removeProductFromWishlist } from "../../functions/user";
-import { forgetFavourite } from "../../functions/useFavourites";
+import { useFavourites } from "../../functions/useFavourites";
 import AccountLayout from "../../components/nav/AccountLayout";
 import laptop from "../../images/laptop.png";
 
@@ -23,7 +22,7 @@ const addToBag = (dispatch, product) => {
   dispatch({ type: "DRAWER_VISIBILITY", payload: true });
 };
 
-const FavouriteRow = ({ item, onRemove, removing }) => {
+const FavouriteRow = ({ item, onRemove }) => {
   const dispatch = useDispatch();
   const imgs = (item.images || []).map((i) => i.url);
   const first = imgs[0] || laptop;
@@ -55,8 +54,8 @@ const FavouriteRow = ({ item, onRemove, removing }) => {
           <div className="fav-row__price">{inr(item.price)}</div>
         </div>
         <div className="fav-row__actions">
-          <button type="button" onClick={onRemove} disabled={removing}>
-            {removing ? "Removing…" : "Remove"}
+          <button type="button" onClick={onRemove}>
+            Remove
           </button>
           <Link to={`/product/${item.slug}`}>Details</Link>
           <a href={enquiry}>Enquire</a>
@@ -69,33 +68,33 @@ const FavouriteRow = ({ item, onRemove, removing }) => {
   );
 };
 
+// Same frame as the account pages when signed in; a public header otherwise.
+const Frame = ({ signedIn, intro, children }) =>
+  signedIn ? (
+    <AccountLayout title="Your favourites" intro={intro}>
+      {children}
+    </AccountLayout>
+  ) : (
+    <div className="account">
+      <header className="account__head">
+        <div className="eyebrow">Favourites</div>
+        <h1>Your favourites</h1>
+        {intro && <p>{intro}</p>}
+      </header>
+      <div className="fav-guest">
+        <p className="fav-guest__note">
+          Saved on this device. <Link to="/login" state={{ from: "/favourites" }}>Sign in</Link> to keep your
+          favourites across devices.
+        </p>
+        {children}
+      </div>
+    </div>
+  );
+
 const Wishlist = () => {
-  const user = useSelector((state) => state.user);
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [removing, setRemoving] = useState(null);
-
-  useEffect(() => {
-    if (!user || !user.token) return;
-    getUserWishlist(user.token)
-      .then((res) => setItems(((res.data && res.data.wishlist) || []).filter(Boolean)))
-      .catch(() => toast.error("Couldn't load your favourites"))
-      .finally(() => setLoading(false));
-  }, [user]);
-
-  const remove = (item) => {
-    setRemoving(item._id);
-    removeProductFromWishlist(user.token, item._id)
-      .then((res) => {
-        if (res.data.ok) {
-          setItems((list) => list.filter((w) => w._id !== item._id));
-          forgetFavourite(item._id);
-          toast(`${item.title} removed from favourites`);
-        }
-      })
-      .catch(() => toast.error("Couldn't remove that piece"))
-      .finally(() => setRemoving(null));
-  };
+  const fav = useFavourites();
+  const items = fav.items;
+  const loading = fav.loading && items.length === 0;
 
   const share = async () => {
     const text = items.map((i) => `${i.title} — ${SITE}/product/${i.slug}`).join("\n");
@@ -112,8 +111,8 @@ const Wishlist = () => {
   };
 
   return (
-    <AccountLayout
-      title="Your favourites"
+    <Frame
+      signedIn={fav.signedIn}
       intro={!loading && items.length ? `${items.length} saved ${items.length === 1 ? "piece" : "pieces"}.` : null}
     >
       {loading ? (
@@ -135,12 +134,12 @@ const Wishlist = () => {
           </div>
           <ul className="fav-list">
             {items.map((item) => (
-              <FavouriteRow key={item._id} item={item} onRemove={() => remove(item)} removing={removing === item._id} />
+              <FavouriteRow key={item._id} item={item} onRemove={() => fav.toggle(item)} />
             ))}
           </ul>
         </>
       )}
-    </AccountLayout>
+    </Frame>
   );
 };
 

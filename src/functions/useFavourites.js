@@ -2,77 +2,115 @@ import { useEffect, useSyncExternalStore } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getUserWishlist, addItemToWishlist, removeProductFromWishlist } from "./user";
-import { useLegacyHistory } from "../components/routes/legacy";
 
 /*
- * One shared favourites (wishlist) store for the whole app, so every heart
- * on every card stays in sync without each one calling the API.
+ * One shared favourites store for the whole app.
+ * - Signed out: favourites live in this browser (localStorage), like JAB.
+ * - Signed in: they live on the account (API). On sign-in, anything saved
+ *   as a guest is moved into the account.
  */
-let state = { ids: new Set(), token: null, loading: false };
+const LOCAL_KEY = "favourites";
+
+// Keep only what the favourites page needs to render.
+const snapshot = (p) => ({
+  _id: String(p._id),
+  title: p.title,
+  slug: p.slug,
+  price: p.price,
+  images: (p.images || []).slice(0, 2).map((i) => ({ url: i.url })),
+  category: p.category && p.category.name ? { name: p.category.name } : undefined,
+  color: p.color,
+  material: p.material,
+  quantity: p.quantity,
+});
+
+const readLocal = () => {
+  try {
+    const list = JSON.parse(localStorage.getItem(LOCAL_KEY));
+    return Array.isArray(list) ? list.filter((p) => p && p._id) : [];
+  } catch (e) {
+    return [];
+  }
+};
+const writeLocal = (list) => {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(list));
+  } catch (e) {
+    /* storage full or blocked: favourites just won't persist */
+  }
+};
+
+let state = {
+  items: readLocal(), // product snapshots (guest) or populated products (account)
+  token: null,
+  loading: false,
+};
 const listeners = new Set();
-const emit = () => listeners.forEach((l) => l());
 const set = (patch) => {
   state = { ...state, ...patch };
-  emit();
+  listeners.forEach((l) => l());
 };
 const subscribe = (l) => {
   listeners.add(l);
   return () => listeners.delete(l);
 };
+const idsOf = (items) => new Set(items.map((p) => String(p._id)));
 
-const load = (token) => {
-  if (!token || state.token === token || state.loading) return;
+const loadAccount = async (token) => {
+  if (state.token === token || state.loading) return;
   set({ loading: true, token });
-  getUserWishlist(token)
-    .then((res) => {
-      const list = (res.data && res.data.wishlist) || [];
-      set({ ids: new Set(list.filter(Boolean).map((p) => String(p._id || p))) });
-    })
-    .catch(() => set({ token: null }))
-    .finally(() => set({ loading: false }));
+  try {
+    // Move guest favourites into the account first.
+    const guest = readLocal();
+    if (guest.length) {
+      await Promise.all(guest.map((p) => addItemToWishlist(p._id, token).catch(() => null)));
+      writeLocal([]);
+    }
+    const res = await getUserWishlist(token);
+    const list = ((res.data && res.data.wishlist) || []).filter(Boolean);
+    set({ items: list });
+    if (guest.length) toast(`${guest.length} saved ${guest.length === 1 ? "piece" : "pieces"} added to your account`);
+  } catch (e) {
+    set({ token: null });
+  } finally {
+    set({ loading: false });
+  }
 };
 
 export const useFavourites = () => {
   const user = useSelector((s) => s.user);
-  const history = useLegacyHistory();
-  const snapshot = useSyncExternalStore(subscribe, () => state);
+  const snap = useSyncExternalStore(subscribe, () => state);
   const token = user && user.token;
 
   useEffect(() => {
-    if (token) load(token);
-    else if (state.token) set({ ids: new Set(), token: null });
+    if (token) loadAccount(token);
+    else if (state.token) set({ token: null, items: readLocal() }); // signed out
   }, [token]);
 
-  const has = (id) => snapshot.ids.has(String(id));
+  const ids = idsOf(snap.items);
+  const has = (id) => ids.has(String(id));
 
   const toggle = async (product) => {
+    const id = String(product._id);
+    const adding = !ids.has(id);
+    const before = state.items;
+    const next = adding ? [snapshot(product), ...before] : before.filter((p) => String(p._id) !== id);
+    set({ items: next }); // optimistic
+
     if (!token) {
-      history.push("/login", { from: history.location.pathname });
+      writeLocal(next);
+      toast(adding ? `${product.title} saved to favourites` : `${product.title} removed from favourites`);
       return;
     }
-    const id = String(product._id);
-    const adding = !snapshot.ids.has(id);
-    const next = new Set(state.ids);
-    adding ? next.add(id) : next.delete(id);
-    set({ ids: next }); // optimistic
     try {
       if (adding) await addItemToWishlist(id, token);
       else await removeProductFromWishlist(token, id);
       toast(adding ? `${product.title} saved to favourites` : `${product.title} removed from favourites`);
     } catch (e) {
-      const undo = new Set(state.ids);
-      adding ? undo.delete(id) : undo.add(id);
-      set({ ids: undo });
+      set({ items: before });
       toast.error("Couldn't update your favourites");
     }
   };
 
-  return { has, toggle, count: snapshot.ids.size };
-};
-
-// Lets the favourites page drop an id after removing it there.
-export const forgetFavourite = (id) => {
-  const next = new Set(state.ids);
-  next.delete(String(id));
-  set({ ids: next });
+  return { has, toggle, items: snap.items, count: snap.items.length, loading: snap.loading, signedIn: !!token };
 };

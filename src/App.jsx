@@ -2,7 +2,7 @@ import React, { useEffect, lazy, Suspense } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { Routes, Route } from "react-router-dom";
 import { LegacyPage } from "./components/routes/legacy";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, Slide } from "react-toastify";
 import { auth } from "./firebase";
 import { useDispatch } from "react-redux";
 import { currentUser } from "./functions/auth";
@@ -86,12 +86,24 @@ const App = () => {
     >
       <Announcement />
       <Header />
-      <ToastContainer />
+      <ToastContainer
+        position="bottom-center"
+        autoClose={2800}
+        hideProgressBar
+        closeOnClick
+        pauseOnHover
+        draggable={false}
+        icon={false}
+        transition={Slide}
+        limit={3}
+        newestOnTop
+      />
       <SideDrawer />
       <Routes>
         <Route path="/user/history" element={<UserRoute><LegacyPage component={History} /></UserRoute>} />
         <Route path="/user/password" element={<UserRoute><LegacyPage component={Password} /></UserRoute>} />
-        <Route path="/user/wishlist" element={<UserRoute><LegacyPage component={Wishlist} /></UserRoute>} />
+        <Route path="/favourites" element={<LegacyPage component={Wishlist} />} />
+        <Route path="/user/wishlist" element={<LegacyPage component={Wishlist} />} />
         <Route path="/checkout" element={<UserRoute><LegacyPage component={Checkout} /></UserRoute>} />
         <Route path="/payment" element={<UserRoute><LegacyPage component={Payment} /></UserRoute>} />
         <Route path="/admin/dashboard" element={<AdminRoute><div className="admin-shell"><LegacyPage component={AdminDashboard} /></div></AdminRoute>} />
