@@ -124,7 +124,9 @@ const Invoice = ({ order }) => {
   const info = pi.paymentInfo || {};
   const ship = pi.shippingAdd || {};
   const date = order.createdAt ? new Date(order.createdAt) : new Date();
-  const invoiceNo = `FIF/WEB-${String(order._id).slice(-6).toUpperCase()}/${fy(date)}`;
+  // Numbered by the server per financial year; orders from before numbering
+  // started fall back to a reference built from the order id.
+  const invoiceNo = order.invoiceNo || `FIF/WEB-${String(order._id).slice(-6).toUpperCase()}/${fy(date)}`;
   const state = placeOfSupply(ship.add);
   const interState = state !== SELLER.state;
 
