@@ -939,3 +939,5 @@ body.menu-open { overflow: hidden; }
   .rail__track { grid-auto-columns: 70%; gap: 14px; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); }
   .rail__controls { display: none; }
 }
+.site-footer__credit a { color: #cfc8bd; border-bottom: 1px solid #5a5650; padding-bottom: 1px; transition: color .2s, border-color .2s; }
+.site-footer__credit a:hover { color: #fff; border-bottom-color: #fff; }

@@ -54,6 +54,12 @@ const Footer = () => {
         </div>
         <div className="site-footer__bottom">
           <span>© {new Date().getFullYear()} First Impression Furnishing LLP</span>
+          <span className="site-footer__credit">
+            Built by{" "}
+            <a href="https://www.linkedin.com/in/tecnicalnitish/" target="_blank" rel="noopener noreferrer">
+              Nitish Kumar
+            </a>
+          </span>
           <WeaveMark size={240} threads={7} className="site-footer__watermark" />
           <img src="https://i.ibb.co/Qfvn4z6/payment.png" alt="Accepted payment methods" />
         </div>
