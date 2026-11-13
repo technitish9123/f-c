@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleAuthProvider } from "../../firebase";
 import { toast } from "react-toastify";
 import { Button } from "antd";
@@ -42,7 +43,7 @@ const Login = ({ history }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const result = await auth.signInWithEmailAndPassword(email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
       const { user } = result;
       const idTokenResult = await user.getIdTokenResult();
 
@@ -71,8 +72,7 @@ const Login = ({ history }) => {
   };
 
   const googleLogin = async () => {
-    auth
-      .signInWithPopup(googleAuthProvider)
+    signInWithPopup(auth, googleAuthProvider)
       .then(async (result) => {
         const { user } = result;
         const idTokenResult = await user.getIdTokenResult();

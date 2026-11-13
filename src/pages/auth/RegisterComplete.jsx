@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { signInWithEmailLink, updatePassword } from "firebase/auth";
 import { auth } from "../../firebase";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
@@ -31,7 +32,8 @@ const RegisterComplete = ({ history }) => {
     }
 
     try {
-      const result = await auth.signInWithEmailLink(
+      const result = await signInWithEmailLink(
+        auth,
         email,
         window.location.href
       );
@@ -41,7 +43,7 @@ const RegisterComplete = ({ history }) => {
         window.localStorage.removeItem("emailForRegistration");
         // get user id token
         let user = auth.currentUser;
-        await user.updatePassword(password);
+        await updatePassword(user, password);
         const idTokenResult = await user.getIdTokenResult();
         // redux store
         console.log("user", user, "idTokenResult", idTokenResult);

@@ -21,7 +21,6 @@ import { toast } from "react-toastify";
 import "./singleProduct.css";
 
 const { Meta } = Card;
-const { TabPane } = Tabs;
 
 const SingleProduct = ({ product, rating, onStarClick }) => {
   const {
@@ -103,33 +102,45 @@ const SingleProduct = ({ product, rating, onStarClick }) => {
           />
         )}
 
-        <Tabs type="card">
-          <TabPane tab="Specification" key="1">
-            <div className="specification">
-              <span className="specification_title"> Width:</span>
-              {width} cm
-              <br />
-              <span className="specification_title"> Brand: </span>
-              {brand} <br />
-              <span className="specification_title"> Fabric Content:</span>
-              {material} <br />
-              <span className="specification_title"> Application:</span>
-              {application} <br />
-              <span className="specification_title"> Design:</span>
-              {design} <br />
-              <span className="specification_title"> Style:</span>
-              {style} <br />
-              <span className="specification_title"> Instruction:</span>
-              {instruction} <br />
-            </div>
-          </TabPane>
-          <TabPane tab="Description" key="2">
-            {description && description}
-          </TabPane>
-          <TabPane tab="More" key="3">
-            Call Us on xxx999xx for more updates on the product
-          </TabPane>
-        </Tabs>
+        <Tabs
+          items={[
+            {
+              key: "1",
+              label: "Specification",
+              children: (
+                <div className="specification">
+                  <span className="specification_title"> Width:</span>
+                  {width} cm
+                  <br />
+                  <span className="specification_title"> Brand: </span>
+                  {brand} <br />
+                  <span className="specification_title"> Fabric Content:</span>
+                  {material} <br />
+                  <span className="specification_title"> Application:</span>
+                  {application} <br />
+                  <span className="specification_title"> Design:</span>
+                  {design} <br />
+                  <span className="specification_title"> Style:</span>
+                  {style} <br />
+                  <span className="specification_title"> Instruction:</span>
+                  {instruction} <br />
+                </div>
+              ),
+            },
+            { key: "2", label: "Description", children: description },
+            {
+              key: "3",
+              label: "Enquiries",
+              children: (
+                <p>
+                  For samples, quantities or custom orders, call us on{" "}
+                  <a href="tel:7777045811">7777045811</a> or write to{" "}
+                  <a href="mailto:meher@firstimp.in">meher@firstimp.in</a>.
+                </p>
+              ),
+            },
+          ]}
+        />
       </div>
       <div className="col-md-5">
         <div className="buybox">

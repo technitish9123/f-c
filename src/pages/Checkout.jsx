@@ -8,8 +8,6 @@ import {
 } from "../functions/user";
 import { Button, Card, Input } from "antd";
 import { toast } from "react-toastify";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
 
 const Checkout = ({ history }) => {
   const { user, pageState, shippingAdd } = useSelector((state) => ({

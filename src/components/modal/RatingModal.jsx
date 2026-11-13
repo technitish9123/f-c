@@ -31,8 +31,8 @@ const RatingModal = ({ children }) => {
         {user ? "leave rating" : "login to leave rating"}
       </div>
       <Modal
-        title="leave rating"
-        visible={modalVisible}
+        title="Leave a rating"
+        open={modalVisible}
         onOk={() => {
           setModalVisible(false);
           toast.success("rating added successfully");

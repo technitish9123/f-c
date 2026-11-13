@@ -1,8 +1,8 @@
 import React, { useEffect, lazy, Suspense } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 import { Routes, Route } from "react-router-dom";
 import { LegacyPage } from "./components/routes/legacy";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { auth } from "./firebase";
 import { useDispatch } from "react-redux";
 import { currentUser } from "./functions/auth";
@@ -52,7 +52,7 @@ const App = () => {
 
   // to check firebase auth state
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const idTokenResult = await user.getIdTokenResult();
 
@@ -94,16 +94,16 @@ const App = () => {
         <Route path="/user/wishlist" element={<UserRoute><LegacyPage component={Wishlist} /></UserRoute>} />
         <Route path="/checkout" element={<UserRoute><LegacyPage component={Checkout} /></UserRoute>} />
         <Route path="/payment" element={<UserRoute><LegacyPage component={Payment} /></UserRoute>} />
-        <Route path="/admin/dashboard" element={<AdminRoute><LegacyPage component={AdminDashboard} /></AdminRoute>} />
-        <Route path="/admin/category" element={<AdminRoute><LegacyPage component={CategoryCreate} /></AdminRoute>} />
-        <Route path="/admin/category/:slug" element={<AdminRoute><LegacyPage component={CategoryUpdate} /></AdminRoute>} />
-        <Route path="/admin/sub" element={<AdminRoute><LegacyPage component={SubCreate} /></AdminRoute>} />
-        <Route path="/admin/sub/:slug" element={<AdminRoute><LegacyPage component={SubUpdate} /></AdminRoute>} />
-        <Route path="/admin/product" element={<AdminRoute><LegacyPage component={ProductCreate} /></AdminRoute>} />
-        <Route path="/admin/products" element={<AdminRoute><LegacyPage component={AllProducts} /></AdminRoute>} />
-        <Route path="/admin/sliderimageupload" element={<AdminRoute><LegacyPage component={SliderImageAdd} /></AdminRoute>} />
-        <Route path="/admin/product/:slug" element={<AdminRoute><LegacyPage component={ProductUpdate} /></AdminRoute>} />
-        <Route path="/admin/coupon" element={<AdminRoute><LegacyPage component={CreateCoupon} /></AdminRoute>} />
+        <Route path="/admin/dashboard" element={<AdminRoute><div className="admin-shell"><LegacyPage component={AdminDashboard} /></div></AdminRoute>} />
+        <Route path="/admin/category" element={<AdminRoute><div className="admin-shell"><LegacyPage component={CategoryCreate} /></div></AdminRoute>} />
+        <Route path="/admin/category/:slug" element={<AdminRoute><div className="admin-shell"><LegacyPage component={CategoryUpdate} /></div></AdminRoute>} />
+        <Route path="/admin/sub" element={<AdminRoute><div className="admin-shell"><LegacyPage component={SubCreate} /></div></AdminRoute>} />
+        <Route path="/admin/sub/:slug" element={<AdminRoute><div className="admin-shell"><LegacyPage component={SubUpdate} /></div></AdminRoute>} />
+        <Route path="/admin/product" element={<AdminRoute><div className="admin-shell"><LegacyPage component={ProductCreate} /></div></AdminRoute>} />
+        <Route path="/admin/products" element={<AdminRoute><div className="admin-shell"><LegacyPage component={AllProducts} /></div></AdminRoute>} />
+        <Route path="/admin/sliderimageupload" element={<AdminRoute><div className="admin-shell"><LegacyPage component={SliderImageAdd} /></div></AdminRoute>} />
+        <Route path="/admin/product/:slug" element={<AdminRoute><div className="admin-shell"><LegacyPage component={ProductUpdate} /></div></AdminRoute>} />
+        <Route path="/admin/coupon" element={<AdminRoute><div className="admin-shell"><LegacyPage component={CreateCoupon} /></div></AdminRoute>} />
         <Route path="/product/:slug" element={<LegacyPage component={Product} />} />
         <Route path="/category/:slug" element={<LegacyPage component={CategoryHome} />} />
         <Route path="/sub/:slug" element={<LegacyPage component={SubHome} />} />

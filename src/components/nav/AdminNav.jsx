@@ -1,56 +1,25 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+
+const groups = [
+  { title: "Store", links: [["/admin/dashboard", "Orders"], ["/admin/products", "Products"], ["/admin/product", "Add product"]] },
+  { title: "Catalogue", links: [["/admin/category", "Categories"], ["/admin/sub", "Sub categories"], ["/admin/coupon", "Coupons"], ["/admin/sliderimageupload", "Slider images"]] },
+  { title: "Account", links: [["/user/password", "Password"]] },
+];
 
 const AdminNav = () => (
-  <nav>
-    <ul className="nav flex-column">
-      <li className="nav-item">
-        <Link to="/admin/dashboard" className="nav-link">
-          Dashboard
-        </Link>
-      </li>
-
-      <li className="nav-item">
-        <Link to="/admin/product" className="nav-link">
-          Product
-        </Link>
-      </li>
-
-      <li className="nav-item">
-        <Link to="/admin/products" className="nav-link">
-          Products
-        </Link>
-      </li>
-
-      <li className="nav-item">
-        <Link to="/admin/category" className="nav-link">
-          Category
-        </Link>
-      </li>
-
-      <li className="nav-item">
-        <Link to="/admin/sub" className="nav-link">
-          Sub Category
-        </Link>
-      </li>
-
-      <li className="nav-item">
-        <Link to="/admin/coupon" className="nav-link">
-          Coupon
-        </Link>
-      </li>
-
-      <li className="nav-item">
-        <Link to="/user/password" className="nav-link">
-          Password
-        </Link>
-      </li>
-      <li className="nav-item">
-        <Link to="/admin/sliderimageupload" className="nav-link">
-          Slider Image
-        </Link>
-      </li>
-    </ul>
+  <nav className="admin-nav" aria-label="Admin">
+    <div className="admin-nav__brand">Studio</div>
+    {groups.map((g) => (
+      <div key={g.title} className="admin-nav__group">
+        <div className="eyebrow">{g.title}</div>
+        {g.links.map(([to, label]) => (
+          <NavLink key={to} to={to} end className={({ isActive }) => `account-nav__link${isActive ? " is-active" : ""}`}>
+            {label}
+          </NavLink>
+        ))}
+      </div>
+    ))}
   </nav>
 );
 

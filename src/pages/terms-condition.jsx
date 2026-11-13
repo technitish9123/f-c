@@ -2,10 +2,8 @@ import React from "react";
 
 const TermsAndCondition = () => {
   return (
-    <div
-      className="bg-red-500 ml-7"
-      style={{ marginTop: "16px", marginLeft: "10px", marginRight: "20px" }}
-    >
+    <article className="legal">
+      <div className="eyebrow">Legal</div>
       <h2>General Terms and Conditions</h2> <h4>Introduction</h4>{" "}
       <p>
         Welcome to First Impression Furnishings LLP, In using website of First
@@ -532,7 +530,7 @@ const TermsAndCondition = () => {
           INDIA
         </b>
       </span>
-    </div>
+    </article>
   );
 };
 

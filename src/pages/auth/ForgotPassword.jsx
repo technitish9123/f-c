@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../firebase";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
@@ -23,8 +24,7 @@ const ForgotPassword = ({ history }) => {
       handleCodeInApp: true,
     };
 
-    await auth
-      .sendPasswordResetEmail(email, config)
+    await sendPasswordResetEmail(auth, email, config)
       .then(() => {
         setEmail("");
         setLoading(false);
