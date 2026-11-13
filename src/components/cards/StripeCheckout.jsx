@@ -39,7 +39,8 @@ const StripeCheckout = () => {
 
   const [intent, setIntent] = useState(null); // { clientSecret, cartTotal, totalAfterDiscount, payable }
   const [cardReady, setCardReady] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); // card / payment errors
+  const [startError, setStartError] = useState(""); // could not create the payment
   const [processing, setProcessing] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
 
@@ -48,7 +49,7 @@ const StripeCheckout = () => {
     createPaymentsIntent(user.token, coupon, shippingAdd)
       .then((res) => setIntent(res.data))
       // e.g. "Only 2 left of Seiichi J-1158." when stock ran out
-      .catch((err) => setError(err.response?.data?.err || "Could not start the payment. Please try again."));
+      .catch((err) => setStartError(err.response?.data?.err || "Could not start the payment. Please try again."));
   }, []);
 
   const clearBag = () => {
@@ -149,10 +150,10 @@ const StripeCheckout = () => {
                 onChange={(e) => setError(e.error ? e.error.message : "")}
               />
             </div>
-            {error && <p className="co-field__err" role="alert">{error}</p>}
+            {(startError || error) && <p className="co-field__err" role="alert">{startError || error}</p>}
 
             <button type="submit" className="ink-btn pay__btn" disabled={!intent || !cardReady || processing}>
-              {processing ? <span className="pay__spinner" aria-label="Processing" /> : intent ? `Pay ${inr(intent.payable / 100)}` : "Preparing payment…"}
+              {processing ? <span className="pay__spinner" aria-label="Processing" /> : intent ? `Pay ${inr(intent.payable / 100)}` : startError ? "Payment unavailable" : "Preparing payment…"}
             </button>
             <p className="pay__secure">
               <svg width="11" height="13" viewBox="0 0 12 14" aria-hidden="true">
