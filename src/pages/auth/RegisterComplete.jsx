@@ -11,13 +11,10 @@ const RegisterComplete = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // const { user } = useSelector((state) => ({ ...state }));
   let dispatch = useDispatch();
 
   useEffect(() => {
     setEmail(window.localStorage.getItem("emailForRegistration"));
-    // console.log(window.location.href);
-    // console.log(window.localStorage.getItem("emailForRegistration"));
   }, [navigate]);
 
   const handleSubmit = async (e) => {
@@ -39,7 +36,6 @@ const RegisterComplete = () => {
         email,
         window.location.href
       );
-      //   console.log("RESULT", result);
       if (result.user.emailVerified) {
         // remove user email fom local storage
         window.localStorage.removeItem("emailForRegistration");
@@ -48,7 +44,6 @@ const RegisterComplete = () => {
         await updatePassword(user, password);
         const idTokenResult = await user.getIdTokenResult();
         // redux store
-        console.log("user", user, "idTokenResult", idTokenResult);
 
         createOrUpdateUser(idTokenResult.token)
           .then((res) => {
@@ -63,13 +58,12 @@ const RegisterComplete = () => {
               },
             });
           })
-          .catch((err) => console.log(err));
+          .catch(() => toast.error("We couldn't finish creating your account. Please try again."));
 
         // redirect
         navigate("/");
       }
     } catch (error) {
-      console.log(error);
       toast.error(error.message);
     }
   };

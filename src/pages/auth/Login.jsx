@@ -63,11 +63,9 @@ const Login = () => {
           });
           roleBasedRedirect(res);
         })
-        .catch((err) => console.log(err));
+        .catch(() => toast.error("We couldn't sign you in. Please try again."));
 
-      // navigate("/");
     } catch (error) {
-      console.log(error);
       toast.error(error.message);
       setLoading(false);
     }
@@ -92,11 +90,9 @@ const Login = () => {
             });
             roleBasedRedirect(res);
           })
-          .catch((err) => console.log(err));
-        // navigate("/");
+          .catch(() => toast.error("We couldn't sign you in. Please try again."));
       })
       .catch((err) => {
-        console.log(err);
         toast.error(err.message);
       });
   };

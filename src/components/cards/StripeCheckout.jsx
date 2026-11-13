@@ -53,68 +53,19 @@ const StripeCheckout = () => {
     },
   };
 
-  //   const handleSubmit = async (e) => {
-  //     e.preventDefault();
-  //     setProcessing(true);
-
-  //     if (!stripe || !elements) return;
-
-  //     const  payment = stripe.confirmCardPayment(clientSecret, {
-  //       payment_method: {
-  //         card: elements.getElement(CardElement),
-  //         billing_details: {
-  //           name: e.target.name.value,
-  //         },
-  //       },
-  //     });
-  // console.log(shippingAdd)
-  //     if (payment.error) {
-  //       setError(`Payment Failed ${(await payment).error.message}`);
-  //       alert.error(payment.error.message);
-  //         <p> payment failed</p>
-  //       setProcessing(false);
-  //     } else {
   //       //here we will recieve successful payment response
-  //       console.log((await payment).paymentIntent)
-  //       const stripeResponse = (await payment).paymentIntent;
   //       //orders on the admin dashboard
-  //       createOrder(stripeResponse, user.token).then((res) => {
   //         //empty cart from everywhere
 
-  //         if (res.data.ok) {
-
   //           //remove cart from local storage
-  //           if (typeof window !== undefined) localStorage.removeItem("cart");
   //           //remove shipping address from local storage
 
   //           //remove cart from redux
-  //           dispatch({
-  //             type: "ADD_TO_CART",
-  //             payload: [],
-  //           });
   //          // remove shipping address from redux
-  //          dispatch({
-  //           type: "SHIPPING_ADDRESS",
-  //           payload: {},
-  //         });
   //           //remove cart from database
-  //           emptyUserCart(user.token);
 
   //           //coupon set back to false
 
-  //           dispatch({
-  //             type: "COUPON_APPLIED",
-  //             payload: false,
-  //           });
-  //         }
-  //       });
-
-  //       console.log(payment);
-  //       setError(null);
-  //       setProcessing(false);
-  //       setSucceeded(true);
-  //     }
-  //   };
   const order = {
     shippingAdd,
   };
@@ -136,7 +87,6 @@ const StripeCheckout = () => {
     });
     if (payment.error) {
       setError(`Payment Failed ${(await payment).error.message}`);
-      console.log(error);
       <p> payment failed</p>;
       setProcessing(false);
     } else {

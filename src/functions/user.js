@@ -53,7 +53,6 @@ export const createOrder = async (paymentIntent, authtoken) =>
         authtoken,
       },
     },
-   // {address},
   );
 
 export const getUserOrders = async (authtoken) =>

@@ -54,7 +54,6 @@ const SubUpdate = () => {
         navigate("/admin/sub");
       })
       .catch((err) => {
-        console.log(err);
         setLoading(false);
         if (err.response.status === 400) toast.error(err.response.data);
       });

@@ -34,7 +34,6 @@ const Register = () => {
   };
 
   const RecaptchaLoaded = () => {
-    console.log("captcha loaded");
   };
   const verifyCallback = (response) => {
     if (response) {

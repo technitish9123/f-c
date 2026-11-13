@@ -10,7 +10,6 @@ import laptop from "../../images/laptop.png";
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const SITE = "https://firstimp.in";
 
-
 const FavouriteRow = ({ item, onRemove }) => {
   const dispatch = useDispatch();
   const imgs = (item.images || []).map((i) => i.url);

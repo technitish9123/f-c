@@ -1,6 +1,5 @@
 import React from "react";
 
-
 const LocalSearch = ({ keyword, setKeyword }) => {
   const handleSearchChange = (e) => {
       e.preventDefault();
@@ -19,6 +18,5 @@ const LocalSearch = ({ keyword, setKeyword }) => {
     </div>
   );
 };
-
 
 export default LocalSearch;

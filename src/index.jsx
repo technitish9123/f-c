@@ -39,7 +39,6 @@ const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const store = createStore(rootReducer, composeEnhancers());
 
 createRoot(document.getElementById("root")).render(
-  // <React.StrictMode>
   <Provider store={store}>
     <BrowserRouter>
       <ConfigProvider theme={antdTheme}>
@@ -47,7 +46,6 @@ createRoot(document.getElementById("root")).render(
       </ConfigProvider>
     </BrowserRouter>
   </Provider>,
-  // </React.StrictMode>
 );
 
 // If you want your app to work offline and load faster, you can change

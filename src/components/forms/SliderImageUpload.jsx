@@ -44,7 +44,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
             })
             .catch((err) => {
               setLoading(false);
-              console.log("CLOUDINARY ERROR: ", err);
             });
         },
         "base64"
@@ -52,22 +51,7 @@ const FileUpload = ({ values, setValues, setLoading }) => {
     }
   };
 
-  //   const  handleupload=()=>{
-  //     console.log(images)
   //    uploadSliderImg(images, user.token)
-  //   .then((res) => {
-  //     console.log(res);
-  //     setLoading(false);
-  //     window.location.reload();
-  //   })
-  //   .catch((err) => {
-  //     console.log(err.response);
-  //     setLoading(false);
-  //     // if(err.response.status === 400) toast.error(`${err.response.data}`)
-  //     toast.error(err.response.data.err);
-  //   });
-
-  //   }
 
   const handleupload = () => {
     uploadSliderImg(images, user.token).then((res) => {
@@ -98,7 +82,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
       })
       .catch((err) => {
         setLoading(false);
-        console.log(err);
       });
   };
 

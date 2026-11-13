@@ -23,13 +23,6 @@ export const updateOrderStatus = async (authtoken, orderId, orderStatus) =>
 
   // sliderImages
 
-  // export const uploadSliderImg = async (img, authtoken) =>
-  // await axios.post(`${import.meta.env.REACT_APP_API}/admin/uploadSliderImage`, img, {
-  //   headers: {
-  //     authtoken,
-  //   },
-  // });
-
   export const uploadSliderImg = async (sliderImages, authtoken) =>
   await axios.put(
     `${import.meta.env.REACT_APP_API}/admin/uploadSliderImage`,

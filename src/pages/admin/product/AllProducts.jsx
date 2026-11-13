@@ -25,7 +25,6 @@ const AllProducts = () => {
       })
       .catch((err) => {
         setLoading(false);
-        console.log(err);
       });
   };
 
@@ -34,14 +33,12 @@ const AllProducts = () => {
     deleteProduct(slug, user.token)
       .then((res) => {
         setLoading(false);
-        console.log(res);
         toast.error(`${title} successfully deleted`);
         loadProducts();
       })
       .catch((err) => {
         setLoading(false);
         toast.error(err.response.data.err);
-        console.log(err);
       });
   };
 

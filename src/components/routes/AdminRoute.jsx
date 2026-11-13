@@ -15,7 +15,6 @@ const AdminRoute = ({ children }) => {
           setOk(true);
         })
         .catch((err) => {
-          console.log("ADMIN ROUTE ERR", err);
           setOk(false);
         });
     }

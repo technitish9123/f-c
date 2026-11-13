@@ -32,7 +32,6 @@ const Checkout = () => {
 
   useEffect(() => {
     getUserCart(user.token).then((res) => {
-      console.log(res.data);
       setProducts(res.data.products);
       setTotal(res.data.cartTotal);
     });
@@ -69,7 +68,6 @@ const Checkout = () => {
     });
 
     emptyUserCart(user.token).then((res) => {
-      console.log(res.data);
       toast.success("Cart Empty ! let's Countinue SHOPPING!!!");
       setProducts([]);
     });
@@ -78,16 +76,6 @@ const Checkout = () => {
       navigate("/shop");
     }, 5000);
   };
-
-  // const saveAddressToDb = () => {
-  //   saveUserAddress(user.token,  address).then((res) => {
-  //     if (res.data.ok) {
-
-  //       setAddressSaved(true);
-  //       toast.success("Address Saved Successully");
-  //     }
-  //   });
-  // };
 
   const applyDiscountCoupon = () => {
     applyDiscount({ coupon }, user.token).then((res) => {
@@ -173,7 +161,6 @@ const Checkout = () => {
           <Input
             type="email"
             className=""
-            //  value={}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email Id"
             required
@@ -186,7 +173,6 @@ const Checkout = () => {
           <Input
             type="text"
             className=""
-            //  value={}
             onChange={(e) => setSpeacialMessage(e.target.value)}
             placeholder="Your special message if any"
             required="true"
@@ -195,7 +181,6 @@ const Checkout = () => {
         </div>
         <hr />
 
-        {/* <ReactQuill placeholder="address" theme="snow" value={address} onChange={setAddress} /> */}
         <textarea
           className="form-control checkout-address"
           rows="4"
@@ -203,19 +188,12 @@ const Checkout = () => {
           placeholder="Enter Your Address"
           onChange={(e) => setAddress(e.target.value)}
         />
-        {/* <button
-          className="btn btn-secondary btn-raised mt-2 btn-block"
-          onClick={saveAddressToDb}
-        >
-          Save Delivery Address
-        </button> */}
         <button
           className="btn btn-secondary btn-raised mt-2 btn-block"
           onClick={handleShippingAdd}
         >
           Save Delivery Address
         </button>
-        {/* <button onClick={handleShippingAdd}>dispatch shipping adress</button> */}
         <hr />
         <h4>Got Coupon?</h4>
         <br />

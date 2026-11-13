@@ -47,7 +47,7 @@ const CreateCoupon = () => {
         toast.success(`${res.data.name} is created`);
         loadCoupons();
       })
-      .catch((err) => console.log(err));
+      .catch(() => toast.error("That didn't work. Please try again."));
   };
 
   const handleRemove = (coupon_id) => {
@@ -58,7 +58,7 @@ const CreateCoupon = () => {
         toast.error(`${res.data.name} deleted Successfully`);
         loadCoupons();
       })
-      .catch((err) => console.log(err));
+      .catch(() => toast.error("That didn't work. Please try again."));
   };
 
   return (

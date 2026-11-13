@@ -23,7 +23,6 @@ const orderDate = (order) => {
 
 const Orders = ({ orders, handleStatusChange }) => {
   const [option, setOptions] = useState("Not Processed");
-  console.log(orders);
 
   const showOrderInTable = (order) => (
     <table className="table table-bordered">
@@ -76,7 +75,6 @@ const Orders = ({ orders, handleStatusChange }) => {
     orders.map((order, i) => (
       <div key={order._id}>
         <div className="m-5 p-3 card">
-          {/* <ShowPaymentInfo order={order} /> */}
 
           <Row>
             <Col lg={12}>
@@ -101,7 +99,6 @@ const Orders = ({ orders, handleStatusChange }) => {
                 ) : (
                   <div> </div>
                 )}
-                {/* <div>Special message: {order.paymentIntent?.shippingAdd?.specialMessage}</div> <br/> */}
               </div>
             </Col>
             <Col lg={12}>

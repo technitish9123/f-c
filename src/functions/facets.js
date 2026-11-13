@@ -6,21 +6,23 @@
 
 // ---- Colour families (JAB-style swatches) --------------------------------
 export const COLOUR_FAMILIES = [
-  { key: "White", hex: "#f4f1ea", names: ["white", "ivory"] },
-  { key: "Beige", hex: "#d9c7a7", names: ["beige", "peachpuff", "bisque", "burlywood", "khaki"] },
-  { key: "Brown", hex: "#7a5236", names: ["brown"] },
-  { key: "Grey", hex: "#9a9a96", names: ["grey", "gray"] },
-  { key: "Black", hex: "#1f1e1c", names: ["black"] },
-  { key: "Red", hex: "#9e2a2b", names: ["red", "maroon", "coral", "orangered"] },
-  { key: "Pink", hex: "#d79aa8", names: ["pink", "magenta"] },
-  { key: "Orange", hex: "#d4772c", names: ["orange"] },
-  { key: "Yellow", hex: "#d9b43c", names: ["yellow", "gold"] },
-  { key: "Green", hex: "#5f7a46", names: ["green", "olive", "lime", "greenyellow"] },
-  { key: "Blue", hex: "#3b5f86", names: ["blue", "navy", "aqua", "teal", "turquoise", "royalblue"] },
-  { key: "Purple", hex: "#6c4f7d", names: ["purple", "lavender"] },
+  { key: "White", hex: "#f4f1ea", names: ["White", "Ivory"] },
+  { key: "Beige", hex: "#d9c7a7", names: ["Beige", "PeachPuff", "Bisque", "BurlyWood", "Khaki"] },
+  { key: "Brown", hex: "#7a5236", names: ["Brown"] },
+  { key: "Grey", hex: "#9a9a96", names: ["Grey", "Gray"] },
+  { key: "Black", hex: "#1f1e1c", names: ["Black"] },
+  { key: "Red", hex: "#9e2a2b", names: ["Red", "Maroon", "Coral", "OrangeRed"] },
+  { key: "Pink", hex: "#d79aa8", names: ["Pink", "Magenta"] },
+  { key: "Orange", hex: "#d4772c", names: ["Orange"] },
+  { key: "Yellow", hex: "#d9b43c", names: ["Yellow", "Gold"] },
+  { key: "Green", hex: "#5f7a46", names: ["Green", "Olive", "Lime", "GreenYellow"] },
+  { key: "Blue", hex: "#3b5f86", names: ["Blue", "Navy", "Aqua", "Teal", "Turquoise", "RoyalBlue"] },
+  { key: "Purple", hex: "#6c4f7d", names: ["Purple", "Lavender"] },
 ];
+// Every colour name a product may carry (admin dropdown); each maps to one family above.
+export const PRODUCT_COLOURS = COLOUR_FAMILIES.flatMap((f) => f.names);
 const colourLookup = Object.fromEntries(
-  COLOUR_FAMILIES.flatMap((f) => f.names.map((n) => [n, f.key]))
+  COLOUR_FAMILIES.flatMap((f) => f.names.map((n) => [n.toLowerCase(), f.key]))
 );
 const colourOf = (p) => {
   const c = colourLookup[String(p.color || "").trim().toLowerCase()];

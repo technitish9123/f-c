@@ -40,7 +40,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
             })
             .catch((err) => {
               setLoading(false);
-              console.log("CLOUDINARY ERROR: ", err);
             });
         },
         "base64"
@@ -69,7 +68,6 @@ const FileUpload = ({ values, setValues, setLoading }) => {
       })
       .catch((err) => {
         setLoading(false);
-        console.log(err);
       });
   };
 
