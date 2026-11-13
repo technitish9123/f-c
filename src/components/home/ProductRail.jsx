@@ -11,12 +11,14 @@ export const RAIL_SORTS = { newest: byNewest, bestselling: byBestSelling };
  * A horizontally scrolling row of products (scroll-snap, swipe on touch,
  * arrow buttons on desktop). Uses the shared catalogue: no extra requests.
  */
-const ProductRail = ({ sort = "newest", limit = 12, label }) => {
-  const [products, setProducts] = useState(null);
+const ProductRail = ({ sort = "newest", limit = 12, label, items }) => {
+  const [loaded, setProducts] = useState(null);
+  const products = items || loaded;
   const [edges, setEdges] = useState({ start: true, end: false });
   const track = useRef(null);
 
   useEffect(() => {
+    if (items) return undefined; // a ready list was passed in
     let current = true;
     getCatalogue()
       .then((list) => current && setProducts([...list].sort(RAIL_SORTS[sort]).slice(0, limit)))
@@ -24,7 +26,7 @@ const ProductRail = ({ sort = "newest", limit = 12, label }) => {
     return () => {
       current = false;
     };
-  }, [sort, limit]);
+  }, [sort, limit, items]);
 
   const updateEdges = () => {
     const el = track.current;

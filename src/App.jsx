@@ -43,6 +43,12 @@ const SideDrawer = lazy(() => import("./components/drawer/SideDrawer"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const CreateCoupon = lazy(() => import("./pages/admin/coupon/CreateCoupon"));
 const Payment = lazy(() => import("./pages/Payment"));
+const Samples = lazy(() => import("./pages/Samples"));
+const Profile = lazy(() => import("./pages/user/Profile"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminLeads = lazy(() => import("./pages/admin/AdminLeads"));
+const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
+const ProductImport = lazy(() => import("./pages/admin/product/ProductImport"));
 
 const App = () => {
   const dispatch = useDispatch();
@@ -104,6 +110,12 @@ const App = () => {
         <Route path="/user/wishlist" element={<Wishlist />} />
         <Route path="/checkout" element={<UserRoute><Checkout /></UserRoute>} />
         <Route path="/payment" element={<UserRoute><Payment /></UserRoute>} />
+        <Route path="/samples" element={<Samples />} />
+        <Route path="/user/profile" element={<UserRoute><Profile /></UserRoute>} />
+        <Route path="/admin/orders" element={<AdminRoute><div className="admin-shell"><AdminOrders /></div></AdminRoute>} />
+        <Route path="/admin/leads" element={<AdminRoute><div className="admin-shell"><AdminLeads /></div></AdminRoute>} />
+        <Route path="/admin/customers" element={<AdminRoute><div className="admin-shell"><AdminCustomers /></div></AdminRoute>} />
+        <Route path="/admin/products/import" element={<AdminRoute><div className="admin-shell"><ProductImport /></div></AdminRoute>} />
         <Route path="/admin/dashboard" element={<AdminRoute><div className="admin-shell"><AdminDashboard /></div></AdminRoute>} />
         <Route path="/admin/category" element={<AdminRoute><div className="admin-shell"><CategoryCreate /></div></AdminRoute>} />
         <Route path="/admin/category/:slug" element={<AdminRoute><div className="admin-shell"><CategoryUpdate /></div></AdminRoute>} />

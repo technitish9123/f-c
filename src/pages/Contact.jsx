@@ -1,11 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { VisitForm } from "../components/product/LeadForms";
 
 // Enquiries are delivered to the showroom inbox via FormSubmit.
 const FORM_ACTION = "https://formsubmit.co/meher@firstimp.in";
 
 const PHONES = ["7777045811", "+91-22-66642030", "+91-22-66642031"];
 
-const Contact = () => (
+const Contact = () => {
+  const { hash } = useLocation();
+  // /contact#visit opens straight at the booking form.
+  useEffect(() => {
+    if (hash === "#visit") setTimeout(() => document.getElementById("visit")?.scrollIntoView(), 50);
+  }, [hash]);
+
+  return (
   <div className="contact-page">
     <header className="contact-page__head">
       <div className="eyebrow">Contact</div>
@@ -63,6 +72,18 @@ const Contact = () => (
       </section>
     </div>
 
+    <section className="visit" id="visit" aria-labelledby="visit-title">
+      <div className="visit__intro">
+        <div className="eyebrow">Appointments</div>
+        <h2 id="visit-title">Book a visit or a video consultation</h2>
+        <p>
+          Spend an hour with our team and the full library of fabrics and wallcoverings, or walk through a project on a
+          video call. Pick a time that suits you and we'll call to confirm it.
+        </p>
+      </div>
+      <VisitForm />
+    </section>
+
     <div className="contact-page__map">
       <iframe
         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d120744.91162828589!2d72.73705795820311!3d18.963304500000003!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7ce752ab391db%3A0x4c1ab42fc4c3481b!2sFirst%20Impression!5e0!3m2!1sen!2sin!4v1610647467585!5m2!1sen!2sin"
@@ -74,6 +95,7 @@ const Contact = () => (
       ></iframe>
     </div>
   </div>
-);
+  );
+};
 
 export default Contact;

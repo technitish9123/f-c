@@ -33,11 +33,23 @@ const orderTotal = (order) => {
   return order.products.reduce((sum, p) => sum + (p.product ? p.product.price * p.count : 0), 0);
 };
 
-const StatusTimeline = ({ status }) => {
+const shortDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+
+const StatusTimeline = ({ order }) => {
+  const status = order.orderStatus;
   if (status === "Cancelled") {
-    return <div className="order__cancelled">This order was cancelled</div>;
+    const r = order.refund;
+    return (
+      <div className="order__cancelled">
+        This order was cancelled
+        {r?.amount ? ` · ${inr(r.amount)} refunded to your original payment method on ${formatDate(r.at)} (allow 5–7 working days)` : ""}
+      </div>
+    );
   }
   const current = Math.max(0, STEPS.indexOf(status));
+  // When each step happened (orders from before history was kept show none).
+  const when = Object.fromEntries((order.statusHistory || []).map((h) => [h.status, h.at]));
+  if (!when["Not Processed"] && order.createdAt) when["Not Processed"] = order.createdAt;
   return (
     <ol className="order__steps" aria-label={`Status: ${STEP_LABEL[status] || status}`}>
       {STEPS.map((s, i) => (
@@ -47,6 +59,7 @@ const StatusTimeline = ({ status }) => {
           aria-current={i === current ? "step" : undefined}
         >
           <span>{STEP_LABEL[s]}</span>
+          {when[s] && i <= current && <small>{shortDate(when[s])}</small>}
         </li>
       ))}
     </ol>
@@ -59,6 +72,7 @@ const OrderCard = ({ order }) => (
       <div>
         <div className="eyebrow">Order</div>
         <div className="order__id">№ {String(order._id).slice(-8).toUpperCase()}</div>
+        {order.invoiceNo && <div className="order__inv">{order.invoiceNo}</div>}
       </div>
       <div>
         <div className="eyebrow">Placed on</div>
@@ -70,7 +84,16 @@ const OrderCard = ({ order }) => (
       </div>
     </header>
 
-    <StatusTimeline status={order.orderStatus} />
+    <StatusTimeline order={order} />
+    {order.tracking && (order.tracking.number || order.tracking.courier) && order.orderStatus !== "Cancelled" && (
+      <div className="order__tracking">
+        <span className="eyebrow">Shipment</span>
+        <span>{[order.tracking.courier, order.tracking.number].filter(Boolean).join(" · ")}</span>
+        {order.tracking.url && (
+          <a href={order.tracking.url} target="_blank" rel="noopener noreferrer" className="link-line">Track parcel</a>
+        )}
+      </div>
+    )}
 
     <ul className="order__items">
       {order.products.map((p, i) => {

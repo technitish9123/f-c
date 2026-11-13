@@ -2,8 +2,8 @@ import React from "react";
 import { NavLink } from "react-router-dom";
 
 const groups = [
-  { title: "Store", links: [["/admin/dashboard", "Orders"], ["/admin/products", "Products"], ["/admin/product", "Add product"]] },
-  { title: "Catalogue", links: [["/admin/category", "Categories"], ["/admin/sub", "Sub categories"], ["/admin/coupon", "Coupons"], ["/admin/sliderimageupload", "Slider images"]] },
+  { title: "Store", links: [["/admin/dashboard", "Overview"], ["/admin/orders", "Orders"], ["/admin/leads", "Leads"], ["/admin/customers", "Customers"]] },
+  { title: "Catalogue", links: [["/admin/products", "Products"], ["/admin/product", "Add product"], ["/admin/products/import", "Import CSV"], ["/admin/category", "Categories"], ["/admin/sub", "Sub categories"], ["/admin/coupon", "Coupons"], ["/admin/sliderimageupload", "Slider images"]] },
   { title: "Account", links: [["/user/password", "Password"]] },
 ];
 

@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { getUserCart, emptyUserCart, saveUserAddress, applyDiscount } from "../functions/user";
+import { getUserCart, emptyUserCart, applyDiscount, getProfile, saveProfile } from "../functions/user";
 import { getCatalogue } from "../functions/catalogue";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
@@ -25,6 +25,8 @@ const FIELDS = [
   ["add", "Delivery address", { as: "textarea", rows: 3, autoComplete: "street-address", maxLength: 400 },
     (v) => (v.trim().length < 10 ? "Please enter your full address with PIN code." : "")],
   ["specialMessage", "Delivery note (optional)", { maxLength: 120, placeholder: "Floor, landmark, preferred time…" }, () => ""],
+  ["gstin", "GSTIN for a business invoice (optional)", { maxLength: 15, style: { textTransform: "uppercase" } },
+    (v) => (!v || /^\d{2}[A-Z]{5}\d{4}[A-Z][A-Z\d]Z[A-Z\d]$/.test(v.toUpperCase()) ? "" : "A GSTIN has 15 characters, e.g. 27AAAAA0000A1Z5.")],
 ];
 
 const Checkout = () => {
@@ -36,8 +38,11 @@ const Checkout = () => {
   const [total, setTotal] = useState(0);
   const [images, setImages] = useState({});
   const [form, setForm] = useState(() => ({
-    name: user?.name || "", mobileNum: "", email: user?.email || "", add: "", specialMessage: "", ...savedAddress(),
+    name: user?.name || "", mobileNum: "", email: user?.email || "", add: "", specialMessage: "", gstin: "", ...savedAddress(),
   }));
+  const [profile, setProfile] = useState(null);
+  const [saveAddr, setSaveAddr] = useState(true);
+  const [params] = useSearchParams();
   const [touched, setTouched] = useState({});
   const [coupon, setCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState("");
@@ -55,7 +60,24 @@ const Checkout = () => {
     getCatalogue().then((all) => setImages(Object.fromEntries(all.map((p) => [p._id, p.images?.[0]?.url]))));
     // A coupon applied earlier no longer counts once the page reloads.
     dispatch({ type: "COUPON_APPLIED", payload: false });
+    // Saved details from the profile fill whatever is still empty.
+    getProfile(user.token)
+      .then(({ data }) => {
+        setProfile(data);
+        const first = data.addresses?.[0];
+        setForm((f) => ({
+          ...f,
+          name: f.name || data.name || "",
+          mobileNum: f.mobileNum || first?.mobileNum || data.phone || "",
+          add: f.add || first?.add || "",
+          gstin: f.gstin || data.gstin || "",
+        }));
+      })
+      .catch(() => {});
   }, []);
+
+  const pickAddress = (a) => setForm((f) => ({ ...f, name: a.name, mobileNum: a.mobileNum, add: a.add }));
+  const isSaved = (profile?.addresses || []).some((a) => a.add.trim() === form.add.trim());
 
   const errors = useMemo(() => Object.fromEntries(FIELDS.map(([k, , , check]) => [k, check(form[k] || "")])), [form]);
   const valid = Object.values(errors).every((e) => !e);
@@ -97,10 +119,20 @@ const Checkout = () => {
       document.querySelector(".co-field.is-invalid input, .co-field.is-invalid textarea")?.focus();
       return;
     }
-    const address = { ...form, mobileNum: form.mobileNum.replace(/\s/g, "") };
+    const address = { ...form, mobileNum: form.mobileNum.replace(/\s/g, ""), gstin: (form.gstin || "").trim().toUpperCase() };
+    if (!address.gstin) delete address.gstin;
     localStorage.setItem("shippingAddress", JSON.stringify(address));
     dispatch({ type: "SHIPPING_ADDRESS", payload: address });
-    saveUserAddress(user.token, address.add).catch(() => {}); // remembered on the account; not required
+    // Remember a new address (and GSTIN) on the account; checkout doesn't wait for it.
+    if (profile && ((saveAddr && !isSaved && profile.addresses.length < 5) || (address.gstin && !profile.gstin))) {
+      saveProfile(user.token, {
+        ...(saveAddr && !isSaved && profile.addresses.length < 5 && {
+          addresses: [...profile.addresses.map(({ label, name, mobileNum, add }) => ({ label: label || "", name, mobileNum, add })),
+            { label: "", name: address.name, mobileNum: address.mobileNum, add: address.add }],
+        }),
+        ...(address.gstin && !profile.gstin && { gstin: address.gstin }),
+      }).catch(() => {});
+    }
     dispatch({ type: "SESSION", payload: true });
     navigate("/payment");
   };
@@ -138,6 +170,9 @@ const Checkout = () => {
           <li className="is-current" aria-current="step">Delivery</li>
           <li>Payment</li>
         </ol>
+        {params.get("cancelled") && (
+          <p className="co__notice" role="status">Payment cancelled. No money was taken; your bag is saved.</p>
+        )}
       </header>
 
       <div className="bag__body">
@@ -149,6 +184,22 @@ const Checkout = () => {
               <p className="co__hint">We'll call this number to arrange delivery and send your receipt to this email.</p>
             </div>
           </div>
+
+          {profile?.addresses?.length > 0 && (
+            <div className="co__saved" role="group" aria-label="Saved addresses">
+              {profile.addresses.map((a, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`co__chip${a.add.trim() === form.add.trim() ? " is-on" : ""}`}
+                  onClick={() => pickAddress(a)}
+                >
+                  <strong>{a.label || a.name}</strong>
+                  <span>{a.add}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="co__grid">
             {FIELDS.map(([k, label, { as, ...props }]) => {
@@ -173,11 +224,18 @@ const Checkout = () => {
             })}
           </div>
 
+          {profile && !isSaved && form.add.trim().length >= 10 && (profile.addresses?.length || 0) < 5 && (
+            <label className="co__check">
+              <input type="checkbox" checked={saveAddr} onChange={(e) => setSaveAddr(e.target.checked)} />
+              Save this address to my profile
+            </label>
+          )}
+
           <div className="co__section co__section--next">
             <span className="co__num">02</span>
             <div>
               <h2 className="co__title">Payment</h2>
-              <p className="co__hint">Next, pay securely by card with Stripe. Your card details never touch our servers.</p>
+              <p className="co__hint">Next, pay securely with UPI, card, net banking or wallet through Razorpay.</p>
             </div>
           </div>
         </form>

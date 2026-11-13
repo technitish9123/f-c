@@ -3,6 +3,13 @@ import { Link, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { getProduct } from "../functions/product";
 import { getCatalogue, familyOf } from "../functions/catalogue";
+import { colourOf } from "../functions/facets";
+import { samples, recentlyViewed, SAMPLE_LIMIT } from "../functions/localList";
+import QuantityCalculator from "../components/product/QuantityCalculator";
+import { EnquiryForm, NotifyForm } from "../components/product/LeadForms";
+import Dialog from "../components/ui/Dialog";
+import ProductRail from "../components/home/ProductRail";
+import { toast } from "react-toastify";
 import { addToCart } from "../functions/cart";
 import { useFavourites } from "../functions/useFavourites";
 import ProductCard from "../components/cards/ProductCard";
@@ -12,8 +19,19 @@ import fallbackImg from "../images/laptop.png";
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const words = (s) => String(s || "").toLowerCase().split(/[\s,]+/).filter(Boolean);
 
-const mailto = (subject, body) =>
-  `mailto:meher@firstimp.in?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+const WHATSAPP = "917777045811";
+const whatsapp = (text) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
+
+// Other categories in the same colour family: fabric + wallpaper + trims that go together.
+const completeTheLook = (product, catalogue, limit = 8) => {
+  const family = colourOf(product)[0];
+  const cat = product.category && product.category._id;
+  if (!family) return [];
+  return catalogue
+    .filter((p) => p._id !== product._id && p.category && p.category._id !== cat && colourOf(p)[0] === family && p.quantity !== 0)
+    .sort((a, b) => (b.sold || 0) - (a.sold || 0))
+    .slice(0, limit);
+};
 
 // Rank other products by how much they share with this one (O(n) over the catalogue).
 const relatedTo = (product, catalogue, limit = 8) => {
@@ -86,6 +104,9 @@ const Product = () => {
   const { slug } = useParams();
   const dispatch = useDispatch();
   const fav = useFavourites();
+  const sampleBasket = samples.use();
+  const recent = recentlyViewed.use();
+  const [enquire, setEnquire] = useState(false);
   const [product, setProduct] = useState(null);
   const [catalogue, setCatalogue] = useState([]);
   const [missing, setMissing] = useState(false);
@@ -110,6 +131,11 @@ const Product = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
+  // Remember this product once its full record is in.
+  useEffect(() => {
+    if (product && product.slug === slug && product.title) recentlyViewed.push(product);
+  }, [product, slug]);
+
   useEffect(() => {
     if (product && product.title) document.title = `${product.title} | First Impression`;
     return () => {
@@ -124,6 +150,8 @@ const Product = () => {
   }, [product, catalogue]);
 
   const related = useMemo(() => (product ? relatedTo(product, catalogue) : []), [product, catalogue]);
+  const look = useMemo(() => (product ? completeTheLook(product, catalogue) : []), [product, catalogue]);
+  const recentOthers = useMemo(() => recent.filter((p) => p.slug !== slug).slice(0, 10), [recent, slug]);
 
   if (missing) {
     return (
@@ -148,6 +176,14 @@ const Product = () => {
   const out = quantity === 0;
   const quality = [category && category.name, style, design].filter(Boolean).join(", ");
   const link = `https://firstimp.in/product/${product.slug}`;
+  const inBasket = sampleBasket.some((p) => p._id === String(product._id));
+  const addSample = () => {
+    if (!samples.add(product)) {
+      toast.info(`You can request up to ${SAMPLE_LIMIT} samples at a time.`);
+      return;
+    }
+    toast.success(`Sample of ${title} added. Request it from your sample list.`);
+  };
 
   const spec = [
     ["Article", title],
@@ -222,30 +258,46 @@ const Product = () => {
           )}
 
           <div className="pdp__actions">
-            <button type="button" className="buybox__cta" disabled={out} onClick={() => addToCart(dispatch, product)}>
-              {out ? "Sold out" : "Add to bag"}
-            </button>
+            {out ? (
+              <NotifyForm product={product} />
+            ) : (
+              <button type="button" className="buybox__cta" onClick={() => addToCart(dispatch, product)}>
+                Add to bag
+              </button>
+            )}
+            {category?.slug !== "tassle" && (
+              <QuantityCalculator
+                product={product}
+                onAdd={(count) => {
+                  addToCart(dispatch, product, count);
+                  toast.success(`${count} ${category?.slug === "wallpaper" ? "rolls" : "m"} of ${title} in your bag.`);
+                }}
+              />
+            )}
             <div className="pdp__actions-row">
-              <a
-                className="ink-btn ink-btn--ghost"
-                href={mailto(
-                  `Sample request: ${title}`,
-                  `Hello,\n\nPlease send me a sample of ${title} (${link}).\n\nName:\nDelivery address:\nPhone:\n\nThank you.`
-                )}
-              >
-                Request a sample
-              </a>
-              <a
-                className="ink-btn ink-btn--ghost"
-                href={mailto(`Enquiry: ${title}`, `Hello,\n\nI'd like to know more about ${title} (${link}).\n\nThank you.`)}
-              >
+              {inBasket ? (
+                <Link className="ink-btn ink-btn--ghost" to="/samples">
+                  Sample added · view ({sampleBasket.length})
+                </Link>
+              ) : (
+                <button type="button" className="ink-btn ink-btn--ghost" onClick={addSample}>
+                  Request a free sample
+                </button>
+              )}
+              <button type="button" className="ink-btn ink-btn--ghost" onClick={() => setEnquire(true)}>
                 Enquire
-              </a>
+              </button>
             </div>
             <p className="pdp__help">
-              Or call <a href="tel:7777045811">7777045811</a> · see it at our Kemps Corner showroom
+              <a href={whatsapp(`Hello, I'm interested in ${title}: ${link}`)} target="_blank" rel="noopener noreferrer" className="pdp__wa">
+                WhatsApp us
+              </a>{" "}
+              · call <a href="tel:+917777045811">7777045811</a> · <Link to="/contact#visit">book a showroom visit</Link>
             </p>
           </div>
+          <Dialog open={enquire} onClose={() => setEnquire(false)} title={`Enquire about ${title}`}>
+            <EnquiryForm product={product} onDone={() => setEnquire(false)} />
+          </Dialog>
 
           <details className="pdp__data" open>
             <summary>Data</summary>
@@ -271,6 +323,13 @@ const Product = () => {
         </section>
       </div>
 
+      {look.length > 0 && (
+        <section className="pdp__related">
+          <h2 className="section-title">Complete the look</h2>
+          <ProductRail items={look} label="Complete the look" />
+        </section>
+      )}
+
       {related.length > 0 && (
         <section className="pdp__related">
           <h2 className="section-title">You might also like</h2>
@@ -279,6 +338,13 @@ const Product = () => {
               <ProductCard key={p._id} product={p} />
             ))}
           </div>
+        </section>
+      )}
+
+      {recentOthers.length > 0 && (
+        <section className="pdp__related">
+          <h2 className="section-title">Recently viewed</h2>
+          <ProductRail items={recentOthers} label="Recently viewed" />
         </section>
       )}
     </div>

@@ -5,13 +5,10 @@
   "dependencies": {
     "@ant-design/icons": "^6.3.4",
     "@react-pdf/renderer": "^4.9.0",
-    "@stripe/react-stripe-js": "^7.0.1",
-    "@stripe/stripe-js": "^10.3.0",
     "antd": "^6.7.0",
     "axios": "^0.21.1",
     "firebase": "^13.3.0",
     "react": "^19.3.1",
-    "react-datepicker": "^8.10.0",
     "react-dom": "^19.3.1",
     "react-image-file-resizer": "^0.4.3",
     "react-recaptcha": "^2.3.10",

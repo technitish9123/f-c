@@ -90,3 +90,7 @@ export const removeProductFromWishlist = async (authtoken, productId) =>
       },
     }
   );
+
+export const getProfile = (authtoken) => axios.get(`${import.meta.env.REACT_APP_API}/user/profile`, { headers: { authtoken } });
+export const saveProfile = (authtoken, profile) =>
+  axios.put(`${import.meta.env.REACT_APP_API}/user/profile`, profile, { headers: { authtoken } });

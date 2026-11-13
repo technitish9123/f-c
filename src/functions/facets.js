@@ -24,7 +24,7 @@ export const PRODUCT_COLOURS = COLOUR_FAMILIES.flatMap((f) => f.names);
 const colourLookup = Object.fromEntries(
   COLOUR_FAMILIES.flatMap((f) => f.names.map((n) => [n.toLowerCase(), f.key]))
 );
-const colourOf = (p) => {
+export const colourOf = (p) => {
   const c = colourLookup[String(p.color || "").trim().toLowerCase()];
   return c ? [c] : [];
 };

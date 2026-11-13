@@ -13,10 +13,13 @@ export const writeCart = (dispatch, cart) => {
   dispatch({ type: "ADD_TO_CART", payload: cart });
 };
 
-// Adds one of a product (or nothing if it's already in the bag) and opens the bag drawer.
-export const addToCart = (dispatch, product, count = 1) => {
+// Adds a product (one, or `count` from the quantity calculator) and opens the
+// bag drawer. Without a count, a product already in the bag is left as it is.
+export const addToCart = (dispatch, product, count) => {
   const cart = readCart();
-  if (!cart.some((p) => p._id === product._id)) cart.push({ ...product, count });
+  const line = cart.find((p) => p._id === product._id);
+  if (!line) cart.push({ ...product, count: count || 1 });
+  else if (count) line.count = count;
   writeCart(dispatch, cart);
   dispatch({ type: "DRAWER_VISIBILITY", payload: true });
 };

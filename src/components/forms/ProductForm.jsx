@@ -20,6 +20,7 @@ const FIELDS = [
   ["rollLength", "Roll length (cm)", "text"],
   ["price", "Price", "number"],
   ["gst", "GST (%)", "number"],
+  ["hsn", "HSN code (optional, else the category default)", "text"],
   ["quantity", "Quantity", "number"],
 ];
 

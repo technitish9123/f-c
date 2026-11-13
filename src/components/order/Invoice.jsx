@@ -1,5 +1,6 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import { computeInvoice, round2 } from "../../functions/gst";
 
 /*
  * GST tax invoice in the firm's existing (Tally) layout. Site prices include
@@ -28,34 +29,7 @@ const SELLER = {
   ],
 };
 
-// Per category: HSN code and selling unit. Edit here if a category changes.
-const CATEGORY = {
-  fabrics: { hsn: "5801", unit: "Mtr." },
-  wallpaper: { hsn: "4814", unit: "Roll" },
-  tassle: { hsn: "5808", unit: "Nos." },
-};
-const DEFAULT_CATEGORY = { hsn: "5801", unit: "Mtr." };
-
-const STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana",
-  "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
-  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana",
-  "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi", "Jammu and Kashmir", "Ladakh",
-  "Puducherry", "Chandigarh", "Andaman and Nicobar", "Dadra and Nagar Haveli", "Daman and Diu", "Lakshadweep",
-];
-// Cities that commonly appear without a state name.
-const CITY_STATE = { mumbai: "Maharashtra", pune: "Maharashtra", thane: "Maharashtra", bangalore: "Karnataka",
-  bengaluru: "Karnataka", chennai: "Tamil Nadu", hyderabad: "Telangana", kolkata: "West Bengal",
-  ahmedabad: "Gujarat", "new delhi": "Delhi", gurgaon: "Haryana", gurugram: "Haryana", noida: "Uttar Pradesh" };
-
-const placeOfSupply = (address = "") => {
-  const a = address.toLowerCase();
-  return STATES.find((s) => a.includes(s.toLowerCase())) ||
-    Object.entries(CITY_STATE).find(([c]) => a.includes(c))?.[1] || SELLER.state;
-};
-
 const money = (n) => Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const round2 = (n) => Math.round(n * 100) / 100;
 const qty = (n) => Number(n).toFixed(2);
 
 // Indian numbering in words: 84525 -> "Eighty Four Thousand Five Hundred Twenty Five"
@@ -80,11 +54,6 @@ const inWords = (amount) => {
   return `INDIAN RUPEES ${rupees}${paise ? ` and ${twoDigits(paise)} Paise` : ""} Only`;
 };
 
-// Financial year label for a date, e.g. 6 Jun 2022 -> "22-23"
-const fy = (d) => {
-  const y = d.getFullYear() - (d.getMonth() < 3 ? 1 : 0);
-  return `${String(y).slice(2)}-${String(y + 1).slice(2)}`;
-};
 const longDate = (d) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }).replace(/ /g, "-");
 
 const B = 0.75; // border width
@@ -123,39 +92,7 @@ const Invoice = ({ order }) => {
   const pi = order.paymentIntent || {};
   const info = pi.paymentInfo || {};
   const ship = pi.shippingAdd || {};
-  const date = order.createdAt ? new Date(order.createdAt) : new Date();
-  // Numbered by the server per financial year; orders from before numbering
-  // started fall back to a reference built from the order id.
-  const invoiceNo = order.invoiceNo || `FIF/WEB-${String(order._id).slice(-6).toUpperCase()}/${fy(date)}`;
-  const state = placeOfSupply(ship.add);
-  const interState = state !== SELLER.state;
-
-  const items = (order.products || []).filter((p) => p.product);
-  const listTotal = items.reduce((sum, p) => sum + p.product.price * p.count, 0);
-  const charged = info.stripeResponse?.amount ? info.stripeResponse.amount / 100 : null;
-  // A coupon shows as the same discount % on every line.
-  const disc = charged && charged < listTotal - 0.01 ? (1 - charged / listTotal) * 100 : 0;
-
-  const lines = items.map((p) => {
-    const cat = CATEGORY[p.product.category?.slug] || DEFAULT_CATEGORY;
-    const gst = Number(p.product.gst) || 0;
-    const rate = p.product.price / (1 + gst / 100); // price excluding GST
-    const taxable = round2(rate * p.count * (1 - disc / 100));
-    return { title: p.product.title, color: p.color, ...cat, gst, rate, count: p.count, taxable, tax: round2((taxable * gst) / 100) };
-  });
-
-  // HSN-wise summary (one row per HSN + rate)
-  const hsnRows = Object.values(
-    lines.reduce((acc, l) => {
-      const key = `${l.hsn}|${l.gst}`;
-      acc[key] = acc[key] || { hsn: l.hsn, gst: l.gst, taxable: 0, tax: 0 };
-      acc[key].taxable = round2(acc[key].taxable + l.taxable);
-      acc[key].tax = round2(acc[key].tax + l.tax);
-      return acc;
-    }, {})
-  );
-  const taxableTotal = round2(lines.reduce((t, l) => t + l.taxable, 0));
-  const taxTotal = round2(lines.reduce((t, l) => t + l.tax, 0));
+  const { date, invoiceNo, state, interState, lines, hsnRows, taxableTotal, taxTotal, charged, disc } = computeInvoice(order);
   const half = (n) => round2(n / 2);
   const computed = round2(taxableTotal + taxTotal);
   const grand = charged ?? computed;
@@ -170,6 +107,7 @@ const Invoice = ({ order }) => {
       {ship.add ? <Text>{ship.add}</Text> : null}
       {ship.mobileNum ? <View style={s.kv}><Text style={s.k}>Contact</Text><Text>: {ship.mobileNum}</Text></View> : null}
       {(ship.email || order.userEmail) ? <View style={s.kv}><Text style={s.k}>E-Mail</Text><Text>: {ship.email || order.userEmail}</Text></View> : null}
+      {ship.gstin ? <View style={s.kv}><Text style={s.k}>GSTIN/UIN</Text><Text>: {ship.gstin}</Text></View> : null}
       <View style={s.kv}><Text style={s.k}>State Name</Text><Text>: {state}</Text></View>
       {label !== "Consignee" ? <View style={s.kv}><Text style={s.k}>Place of Supply</Text><Text>: {state}</Text></View> : null}
     </View>
