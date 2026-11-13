@@ -1,21 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useParams } from "react-router-dom";
 import { Slider } from "antd";
-import { getCatalogue } from "../functions/catalogue";
+import { searchCatalogue } from "../functions/catalogue";
 import LoadingCard from "../components/cards/LoadingCard";
 import ProductCard from "../components/cards/ProductCard";
 import finderImg from "../components/assets/images/s8.jpg";
-import {
-  FACETS,
-  COLOUR_FAMILIES,
-  SORTS,
-  indexProducts,
-  filterItems,
-  facetCounts,
-  sortItems,
-  searchItems,
-} from "../functions/facets";
+import { FACETS, COLOUR_FAMILIES, SORTS } from "../functions/facets";
 
 const PAGE = 24;
 const swatchHex = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.key, f.hex]));
@@ -23,6 +14,7 @@ const inr = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
 const emptySelection = () => Object.fromEntries(FACETS.map((f) => [f.key, []]));
 
 // Also serves /category/:slug and /sub/:slug, scoped to that category.
+// Search, filters, counts and paging all run on the server (GET /catalogue).
 const Shop = () => {
   const dispatch = useDispatch();
   const { slug } = useParams();
@@ -30,25 +22,20 @@ const Shop = () => {
   const scope = slug ? (pathname.startsWith("/sub/") ? "sub" : "category") : null;
   const searchText = useSelector((state) => state.search.text);
 
-  const [items, setItems] = useState([]); // indexed products
+  const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [counts, setCounts] = useState({});
+  const [priceBounds, setPriceBounds] = useState([0, 0]);
+  const [scopeName, setScopeName] = useState("");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selected, setSelected] = useState(emptySelection);
-  const [price, setPrice] = useState(null); // [min, max] or null = any
+  const [price, setPrice] = useState(null); // committed [min, max] or null = any
+  const [sliding, setSliding] = useState(null); // slider position while dragging
   const [sort, setSort] = useState("featured");
-  const [visible, setVisible] = useState(PAGE);
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  // The catalogue is loaded once and shared; search, filters and sorting run client-side.
-  useEffect(() => {
-    let cancelled = false;
-    getCatalogue()
-      .then((list) => !cancelled && setItems(indexProducts(list)))
-      .catch(() => !cancelled && setItems([]))
-      .finally(() => !cancelled && setLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const request = useRef(null);
 
   // Moving between categories starts fresh.
   useEffect(() => {
@@ -57,24 +44,50 @@ const Shop = () => {
     window.scrollTo(0, 0);
   }, [slug]);
 
-  const scoped = useMemo(() => {
-    if (!scope) return items;
-    return items.filter(({ product: p }) =>
-      scope === "category"
-        ? p.category && p.category.slug === slug
-        : (p.subs || []).some((s) => s && s.slug === slug)
-    );
-  }, [items, scope, slug]);
-  const scopeName = useMemo(() => {
-    const p = scoped[0] && scoped[0].product;
-    if (!p) return slug ? slug.replace(/-/g, " ") : "";
-    return scope === "category" ? p.category.name : ((p.subs || []).find((s) => s.slug === slug) || {}).name || slug;
-  }, [scoped, scope, slug]);
+  const query = (p) => ({
+    q: searchText, ...(scope === "category" && { category: slug }), ...(scope === "sub" && { sub: slug }),
+    ...selected, ...(price && { min: price[0], max: price[1] }), sort, page: p, limit: PAGE,
+  });
 
-  const searched = useMemo(() => searchItems(scoped, searchText), [scoped, searchText]);
+  // First page whenever the question changes; the previous request is cancelled.
+  useEffect(() => {
+    request.current?.abort();
+    const ctrl = (request.current = new AbortController());
+    setLoading(true);
+    const t = setTimeout(() => {
+      searchCatalogue(query(1), { signal: ctrl.signal })
+        .then((r) => {
+          setItems(r.items);
+          setTotal(r.total);
+          setCounts(r.facets);
+          if (!price) setPriceBounds(r.price ? [r.price.min, r.price.max] : [0, 0]);
+          setScopeName(r.scope?.name || (slug ? slug.replace(/-/g, " ") : ""));
+          setPage(1);
+          setLoading(false);
+        })
+        .catch((err) => {
+          if (err.name === "CanceledError" || err.name === "AbortError") return;
+          setItems([]);
+          setTotal(0);
+          setLoading(false);
+        });
+    }, 120); // let quick filter clicks settle into one request
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [slug, scope, searchText, selected, price, sort]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset paging whenever the result set changes.
-  useEffect(() => setVisible(PAGE), [selected, price, sort, searchText]);
+  const loadMore = () => {
+    setLoadingMore(true);
+    searchCatalogue(query(page + 1))
+      .then((r) => {
+        setItems((list) => [...list, ...r.items]);
+        setPage(page + 1);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMore(false));
+  };
 
   // Lock page scroll while the filter drawer is open; Esc closes it.
   useEffect(() => {
@@ -86,23 +99,6 @@ const Shop = () => {
       window.removeEventListener("keydown", onKey);
     };
   }, [sheetOpen]);
-
-  const priceBounds = useMemo(() => {
-    if (!scoped.length) return [0, 0];
-    let lo = Infinity;
-    let hi = -Infinity;
-    for (const { price: p } of scoped) {
-      if (p < lo) lo = p;
-      if (p > hi) hi = p;
-    }
-    return [lo, hi];
-  }, [scoped]);
-
-  const results = useMemo(
-    () => sortItems(filterItems(searched, selected, price), sort),
-    [searched, selected, price, sort]
-  );
-  const counts = useMemo(() => facetCounts(searched, selected, price), [searched, selected, price]);
 
   const toggle = (key, value) =>
     setSelected((s) => ({
@@ -187,13 +183,17 @@ const Shop = () => {
               min={priceBounds[0]}
               max={priceBounds[1]}
               step={100}
-              value={price || priceBounds}
-              onChange={(v) => setPrice(v)}
+              value={sliding || price || priceBounds}
+              onChange={(v) => setSliding(v)}
+              onChangeComplete={(v) => {
+                setSliding(null);
+                setPrice(v[0] <= priceBounds[0] && v[1] >= priceBounds[1] ? null : v);
+              }}
               tooltip={{ formatter: (v) => inr(v) }}
             />
             <div className="price-range__values">
-              <span>{inr((price || priceBounds)[0])}</span>
-              <span>{inr((price || priceBounds)[1])}</span>
+              <span>{inr((sliding || price || priceBounds)[0])}</span>
+              <span>{inr((sliding || price || priceBounds)[1])}</span>
             </div>
           </div>
         </details>
@@ -246,7 +246,7 @@ const Shop = () => {
           {panel}
           <div className="shop__sheet-foot">
             <button type="button" className="ink-btn" onClick={() => setSheetOpen(false)}>
-              Show {results.length.toLocaleString("en-IN")} {results.length === 1 ? "product" : "products"}
+              Show {total.toLocaleString("en-IN")} {total === 1 ? "product" : "products"}
             </button>
           </div>
         </aside>
@@ -265,7 +265,7 @@ const Shop = () => {
               </select>
             </label>
             <span className="shop__count">
-              {loading ? "Loading…" : `${results.length.toLocaleString("en-IN")} ${results.length === 1 ? "product" : "products"}`}
+              {loading ? "Loading…" : `${total.toLocaleString("en-IN")} ${total === 1 ? "product" : "products"}`}
             </span>
             <button type="button" className="shop__filter-btn" onClick={() => setSheetOpen(true)} aria-expanded={sheetOpen}>
               {activeChips.length > 0 && <span className="shop__filter-n">{activeChips.length}</span>}
@@ -286,7 +286,7 @@ const Shop = () => {
 
           {loading ? (
             <LoadingCard count={9} />
-          ) : results.length === 0 ? (
+          ) : total === 0 ? (
             <div className="empty-state">
               <p>No pieces match these filters.</p>
               <button type="button" className="buybox__cta" onClick={clearAll}>
@@ -296,17 +296,17 @@ const Shop = () => {
           ) : (
             <>
               <div className="product-grid">
-                {results.slice(0, visible).map(({ product }) => (
+                {items.map((product) => (
                   <ProductCard key={product._id} product={product} />
                 ))}
               </div>
-              {visible < results.length && (
+              {items.length < total && (
                 <div className="shop__more">
                   <p className="eyebrow">
-                    Showing {visible} of {results.length}
+                    Showing {items.length.toLocaleString("en-IN")} of {total.toLocaleString("en-IN")}
                   </p>
-                  <button type="button" className="ink-btn ink-btn--ghost" onClick={() => setVisible((v) => v + PAGE)}>
-                    Load more
+                  <button type="button" className="ink-btn ink-btn--ghost" onClick={loadMore} disabled={loadingMore}>
+                    {loadingMore ? "Loading…" : "Load more"}
                   </button>
                 </div>
               )}

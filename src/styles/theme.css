@@ -1146,3 +1146,13 @@ a.adm-kpi:hover { color: var(--ink); outline: 1px solid var(--line); }
   .adm-stock li { grid-template-columns: 36px 1fr; }
   .adm-stock__edit, .adm-stock .adm-badge { grid-column: 2; justify-self: start; }
 }
+
+/* ---------- Large catalogue (imported ranges) ---------- */
+.pdp__sku { font-size: 11px; letter-spacing: var(--track); text-transform: uppercase; color: var(--stone); margin-top: 6px; }
+.pdp__all-colours { margin-top: 12px; }
+.adm-thumb { width: 52px; }
+.adm-thumb img { width: 40px; height: 50px; object-fit: cover; background: var(--paper-2); display: block; }
+.adm-row-actions { white-space: nowrap; }
+.adm-row-actions .text-link + .text-link { margin-left: 14px; }
+.adm-pager { display: flex; justify-content: center; align-items: center; gap: 24px; margin: 20px 0; font-size: 13px; }
+.adm__actions .ink-btn { display: inline-block; }

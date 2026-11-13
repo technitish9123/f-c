@@ -12,6 +12,7 @@ const ProductCard = ({ product }) => {
   const fav = useFavourites();
   const { _id, images = [], slug, title, price } = product;
   const out = product.quantity === 0;
+  const onRequest = product.priceOnRequest || !(price > 0);
   const saved = fav.has(_id);
 
   return (
@@ -37,11 +38,15 @@ const ProductCard = ({ product }) => {
           <Link to={`/product/${slug}`} className="pcard__title">
             {title}
           </Link>
-          <span className="pcard__price">₹{price}</span>
+          <span className="pcard__price">{onRequest ? "On request" : `₹${Number(price).toLocaleString("en-IN")}`}</span>
         </div>
-        <button className="pcard__btn" disabled={out} onClick={() => addToCart(dispatch, product)}>
-          {out ? "Sold out" : "Add to bag"}
-        </button>
+        {onRequest ? (
+          <Link to={`/product/${slug}`} className="pcard__btn">View &amp; enquire</Link>
+        ) : (
+          <button className="pcard__btn" disabled={out} onClick={() => addToCart(dispatch, product)}>
+            {out ? "Sold out" : "Add to bag"}
+          </button>
+        )}
       </div>
     </div>
   );

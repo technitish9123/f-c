@@ -5,6 +5,8 @@ import { PRODUCT_COLOURS } from "../../functions/facets";
 // Text and number fields, in display order: [name, label, type].
 const FIELDS = [
   ["title", "Title", "text"],
+  ["sku", "Supplier code (optional, e.g. CH1249/069)", "text"],
+  ["articleCode", "Article (optional, groups colourways)", "text"],
   ["description", "Description", "text"],
   ["brand", "Brand", "text"],
   ["material", "Material", "text"],

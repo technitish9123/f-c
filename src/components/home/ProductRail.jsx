@@ -1,15 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { getCatalogue } from "../../functions/catalogue";
+import { searchCatalogue } from "../../functions/catalogue";
 import ProductCard from "../cards/ProductCard";
 import LoadingCard from "../cards/LoadingCard";
 
-const byNewest = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
-const byBestSelling = (a, b) => (b.sold || 0) - (a.sold || 0) || byNewest(b, a);
-export const RAIL_SORTS = { newest: byNewest, bestselling: byBestSelling };
 
 /*
  * A horizontally scrolling row of products (scroll-snap, swipe on touch,
- * arrow buttons on desktop). Uses the shared catalogue: no extra requests.
+ * arrow buttons on desktop). One small server request per rail.
  */
 const ProductRail = ({ sort = "newest", limit = 12, label, items }) => {
   const [loaded, setProducts] = useState(null);
@@ -20,8 +17,8 @@ const ProductRail = ({ sort = "newest", limit = 12, label, items }) => {
   useEffect(() => {
     if (items) return undefined; // a ready list was passed in
     let current = true;
-    getCatalogue()
-      .then((list) => current && setProducts([...list].sort(RAIL_SORTS[sort]).slice(0, limit)))
+    searchCatalogue({ sort: sort === "bestselling" ? "bestselling" : "newest", limit })
+      .then((r) => current && setProducts(r.items))
       .catch(() => current && setProducts([]));
     return () => {
       current = false;

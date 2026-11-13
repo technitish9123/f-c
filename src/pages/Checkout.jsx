@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { getUserCart, emptyUserCart, applyDiscount, getProfile, saveProfile } from "../functions/user";
-import { getCatalogue } from "../functions/catalogue";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
@@ -36,7 +35,6 @@ const Checkout = () => {
 
   const [lines, setLines] = useState(null); // null while loading
   const [total, setTotal] = useState(0);
-  const [images, setImages] = useState({});
   const [form, setForm] = useState(() => ({
     name: user?.name || "", mobileNum: "", email: user?.email || "", add: "", specialMessage: "", gstin: "", ...savedAddress(),
   }));
@@ -56,8 +54,6 @@ const Checkout = () => {
         setTotal(res.data.cartTotal || 0);
       })
       .catch(() => setLines([]));
-    // Thumbnails come from the (cached) catalogue; the cart only stores ids.
-    getCatalogue().then((all) => setImages(Object.fromEntries(all.map((p) => [p._id, p.images?.[0]?.url]))));
     // A coupon applied earlier no longer counts once the page reloads.
     dispatch({ type: "COUPON_APPLIED", payload: false });
     // Saved details from the profile fill whatever is still empty.
@@ -248,7 +244,7 @@ const Checkout = () => {
               l ? (
                 <li key={i} className="co-line">
                   <span className="co-line__media">
-                    {images[l.product?._id] && <img src={images[l.product._id]} alt="" loading="lazy" />}
+                    {l.product?.images?.[0] && <img src={l.product.images[0].url} alt="" loading="lazy" />}
                     <span className="co-line__qty" aria-label={`Quantity ${l.count}`}>{l.count}</span>
                   </span>
                   <span className="co-line__title">{l.product?.title || "Unavailable item"}</span>

@@ -1,27 +1,19 @@
-import { getProductsByCount } from "./product";
+import axios from "axios";
+
+const API = import.meta.env.REACT_APP_API;
 
 /*
- * The whole catalogue (~370 products, ~27 KB gzipped) is fetched once and
- * shared by the product finder, category pages and product pages.
+ * The catalogue is searched, filtered and paged on the server, so it can hold
+ * tens of thousands of products. params: q, category, sub, type, use, colour,
+ * pattern, composition (comma lists), min, max, sort, page, limit, ids.
  */
-let request = null;
-
-export const getCatalogue = () => {
-  if (!request) {
-    request = getProductsByCount(1000)
-      .then((res) => res.data || [])
-      .catch((err) => {
-        request = null; // allow a retry after a failure
-        throw err;
-      });
-  }
-  return request;
+export const searchCatalogue = (params, { signal } = {}) => {
+  const clean = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== "" && !(Array.isArray(v) && !v.length))
+      .map(([k, v]) => [k, Array.isArray(v) ? v.join(",") : v])
+  );
+  return axios.get(`${API}/catalogue`, { params: clean, signal }).then((r) => r.data);
 };
 
-// "Seiichi J-1158" and "Seiichi J-1163" are colourways of one design.
-export const familyOf = (title = "") =>
-  title
-    .trim()
-    .split(/\s+(?=[A-Z]{0,3}[-\s]?\d)/)[0]
-    .replace(/[\s\-–:]+$/, "")
-    .toLowerCase();
+// Colourways of the same design, related designs and "complete the look".
+export const getMore = (slug) => axios.get(`${API}/product/${encodeURIComponent(slug)}/more`).then((r) => r.data);

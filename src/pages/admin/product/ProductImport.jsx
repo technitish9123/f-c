@@ -6,7 +6,7 @@ import AdminPage, { inr, downloadCsv } from "../../../components/admin/AdminPage
 import { getCategories } from "../../../functions/category";
 import { importProducts } from "../../../functions/admin";
 
-const COLUMNS = ["title", "description", "price", "gst", "category", "quantity", "color", "brand", "material", "design", "style",
+const COLUMNS = ["sku", "articleCode", "title", "description", "price", "gst", "category", "quantity", "color", "brand", "material", "design", "style",
   "application", "property", "instruction", "width", "length", "weight", "repeatLength", "rollLength", "shipping", "hsn", "images"];
 const NUMERIC = ["price", "gst", "quantity", "width", "length", "weight", "repeatLength", "rollLength"];
 
@@ -42,7 +42,7 @@ const toProduct = (rec, categories) => {
       const c = categories.find((x) => [x.name.toLowerCase(), x.slug].includes(v.toLowerCase()));
       if (c) p.category = c._id; else problems.push(`unknown category "${v}"`);
     } else if (k === "images") {
-      p.images = v.split(/[|\s]+/).filter((u) => /^https:\/\//.test(u)).map((url) => ({ url, public_id: "" }));
+      p.images = v.split(/[|\s]+/).filter((u) => /^https?:\/\/\S+$/.test(u)).map((url) => ({ url, public_id: "" }));
     } else if (k === "shipping") {
       p.shipping = /^y/i.test(v) ? "Yes" : "No";
     } else if (NUMERIC.includes(k)) {
@@ -51,9 +51,8 @@ const toProduct = (rec, categories) => {
     } else p[k] = v;
   }
   if (!p.title) problems.push("title missing");
-  else if (p.title.length > 32) problems.push("title longer than 32 characters");
+  else if (p.title.length > 80) problems.push("title longer than 80 characters");
   if (!p.description) problems.push("description missing");
-  if (p.price === undefined) problems.push("price missing");
   if (p.gst === undefined) problems.push("gst missing");
   if (p.hsn && !/^\d{4,8}$/.test(p.hsn)) problems.push("hsn must be 4-8 digits");
   return { p, problems };
@@ -91,7 +90,7 @@ const ProductImport = () => {
     try {
       const { data } = await importProducts(user.token, valid.map((r) => r.p));
       setResult(data);
-      toast.success(`${data.created} product${data.created === 1 ? "" : "s"} added.`);
+      toast.success(`${data.created} added, ${data.updated} updated.`);
     } catch (err) {
       toast.error(err.response?.data?.err || "Import failed.");
     } finally {
@@ -101,17 +100,19 @@ const ProductImport = () => {
 
   const template = () => downloadCsv("product-import-template.csv", [
     COLUMNS,
-    ["Velvet Noir 01", "Heavy cotton velvet with a soft sheen", "4200", "5", categories[0]?.name || "Fabrics", "30", "Black", "European",
-      "100% cotton", "Plain", "Velvet", "Curtains, Upholstery", "Fade resistant", "Dry clean only", "140", "", "", "0", "", "Yes", "5801",
-      "https://res.cloudinary.com/your-cloud/image/upload/v1/velvet-noir.jpg"],
+    ["CH1249/069", "CH1249", "Hot Madison Reboot 069", "Woven, tabby weave upholstery fabric", "", "5", categories[0]?.name || "Fabrics",
+      "", "Beige", "Chivasso", "63% cotton, 37% linen", "Plain", "Tabby weave", "Curtains, Upholstery", "Martindale 55,000",
+      "Dry clean only", "140", "", "", "0", "", "Yes", "5801", "https://assets.jab.de/preview/fabrics/article/CH12/CH1249-069-article-ratio1.jpg"],
   ]);
 
   return (
     <AdminPage title="Import products" actions={<button type="button" className="ink-btn ink-btn--ghost" onClick={template}>Download template</button>}>
       <p className="co__hint adm-intro">
-        Upload a CSV (from Excel: File › Save as › CSV). Required columns: title, description, price (incl. GST), gst. Category is
-        matched by name ({categories.map((c) => c.name).join(", ") || "…"}). Images: one or more https links separated by “|”.
-        Nothing is saved until you press Import.
+        Upload a CSV (from Excel: File › Save as › CSV). Required columns: title, description, gst. Leave price empty for
+        “price on request” (a later file with prices fills them in). Rows with a supplier code (sku, e.g. JAB “CH1249/069”)
+        update that product if it exists, so the same file can be re-imported safely; articleCode groups colourways.
+        Category is matched by name ({categories.map((c) => c.name).join(", ") || "…"}). Images: one or more links separated
+        by “|”. Up to 500 rows per file. Nothing is saved until you press Import.
       </p>
       <label className="adm-drop">
         <input type="file" accept=".csv,text/csv" onChange={(e) => read(e.target.files[0])} />
@@ -123,18 +124,20 @@ const ProductImport = () => {
           <p className="co__hint">{rows.length} rows · <strong>{valid.length} ready</strong>{rows.length > valid.length && ` · ${rows.length - valid.length} with problems (skipped)`}</p>
           <div className="adm-table-wrap">
             <table className="adm-table">
-              <thead><tr><th>#</th><th>Title</th><th>Category</th><th>Price</th><th>Stock</th><th>Check</th></tr></thead>
+              <thead><tr><th>#</th><th>Code</th><th>Title</th><th>Category</th><th>Price</th><th>Stock</th><th>Check</th></tr></thead>
               <tbody>
                 {rows.map(({ p, problems }, i) => {
-                  const done = result?.results?.find((r) => r.slug && r.slug === p.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""));
+                  // Results come back in the order the valid rows were sent.
+                  const done = !problems.length && result?.results?.[valid.indexOf(rows[i])];
                   return (
                     <tr key={i} className={problems.length ? "is-bad" : ""}>
                       <td>{i + 2}</td>
+                      <td>{p.sku || "—"}</td>
                       <td>{p.title || "—"}</td>
                       <td>{categories.find((c) => c._id === p.category)?.name || "—"}</td>
-                      <td>{p.price !== undefined ? inr(p.price) : "—"}</td>
+                      <td>{p.price !== undefined ? inr(p.price) : "On request"}</td>
                       <td>{p.quantity ?? "—"}</td>
-                      <td>{problems.length ? <span className="co-field__err">{problems.join("; ")}</span> : done ? <Link to={`/product/${done.slug}`}>Added ✓</Link> : "OK"}</td>
+                      <td>{problems.length ? <span className="co-field__err">{problems.join("; ")}</span> : done ? (done.ok ? <Link to={`/product/${done.slug}`}>{done.updated ? "Updated ✓" : "Added ✓"}</Link> : <span className="co-field__err">{done.err}</span>) : "OK"}</td>
                     </tr>
                   );
                 })}

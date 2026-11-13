@@ -29,7 +29,7 @@ export const createLocalList = (key, max) => {
     return () => listeners.delete(l);
   };
   const snapshot = (p) => ({
-    _id: String(p._id), title: p.title, slug: p.slug, price: p.price, quantity: p.quantity, color: p.color,
+    _id: String(p._id), title: p.title, slug: p.slug, price: p.price, priceOnRequest: p.priceOnRequest, quantity: p.quantity, color: p.color,
     images: (p.images || []).slice(0, 2).map((i) => ({ url: i.url })),
     category: p.category && p.category.name ? { name: p.category.name, slug: p.category.slug } : undefined,
   });

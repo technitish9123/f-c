@@ -20,6 +20,7 @@ const FavouriteRow = ({ item, onRemove }) => {
     `Hello,\n\nI'd like to know more about ${item.title} (${SITE}/product/${item.slug}).\n\nThank you.`
   )}`;
   const out = item.quantity === 0;
+  const onRequest = item.priceOnRequest || !(item.price > 0);
 
   return (
     <li className="fav-row">
@@ -39,7 +40,7 @@ const FavouriteRow = ({ item, onRemove }) => {
               {m}
             </div>
           ))}
-          <div className="fav-row__price">{inr(item.price)}</div>
+          <div className="fav-row__price">{onRequest ? "Price on request" : inr(item.price)}</div>
         </div>
         <div className="fav-row__actions">
           <button type="button" onClick={onRemove}>
@@ -47,9 +48,11 @@ const FavouriteRow = ({ item, onRemove }) => {
           </button>
           <Link to={`/product/${item.slug}`}>Details</Link>
           <a href={enquiry}>Enquire</a>
-          <button type="button" className="is-primary" onClick={() => addToCart(dispatch, item)} disabled={out}>
-            {out ? "Sold out" : "Add to bag"}
-          </button>
+          {!onRequest && (
+            <button type="button" className="is-primary" onClick={() => addToCart(dispatch, item)} disabled={out}>
+              {out ? "Sold out" : "Add to bag"}
+            </button>
+          )}
         </div>
       </div>
     </li>

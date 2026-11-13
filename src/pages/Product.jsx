@@ -2,8 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { getProduct } from "../functions/product";
-import { getCatalogue, familyOf } from "../functions/catalogue";
-import { colourOf } from "../functions/facets";
+import { getMore } from "../functions/catalogue";
 import { samples, recentlyViewed, SAMPLE_LIMIT } from "../functions/localList";
 import QuantityCalculator from "../components/product/QuantityCalculator";
 import { EnquiryForm, NotifyForm } from "../components/product/LeadForms";
@@ -17,41 +16,10 @@ import LoadingCard from "../components/cards/LoadingCard";
 import fallbackImg from "../images/laptop.png";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
-const words = (s) => String(s || "").toLowerCase().split(/[\s,]+/).filter(Boolean);
 
 const WHATSAPP = "917777045811";
 const whatsapp = (text) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(text)}`;
 
-// Other categories in the same colour family: fabric + wallpaper + trims that go together.
-const completeTheLook = (product, catalogue, limit = 8) => {
-  const family = colourOf(product)[0];
-  const cat = product.category && product.category._id;
-  if (!family) return [];
-  return catalogue
-    .filter((p) => p._id !== product._id && p.category && p.category._id !== cat && colourOf(p)[0] === family && p.quantity !== 0)
-    .sort((a, b) => (b.sold || 0) - (a.sold || 0))
-    .slice(0, limit);
-};
-
-// Rank other products by how much they share with this one (O(n) over the catalogue).
-const relatedTo = (product, catalogue, limit = 8) => {
-  const family = familyOf(product.title);
-  const uses = new Set(words(product.application));
-  const catId = product.category && product.category._id;
-  return catalogue
-    .filter((p) => p._id !== product._id && familyOf(p.title) !== family)
-    .map((p) => ({
-      p,
-      score:
-        (p.category && p.category._id === catId ? 3 : 0) +
-        (p.design && p.design.trim().toLowerCase() === String(product.design || "").trim().toLowerCase() ? 2 : 0) +
-        (p.color && p.color === product.color ? 2 : 0) +
-        words(p.application).filter((w) => uses.has(w)).length * 0.2,
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map((x) => x.p);
-};
 
 const Gallery = ({ images, title }) => {
   const urls = images.length ? images.map((i) => i.url) : [fallbackImg];
@@ -107,28 +75,27 @@ const Product = () => {
   const sampleBasket = samples.use();
   const recent = recentlyViewed.use();
   const [enquire, setEnquire] = useState(false);
+  const [allColours, setAllColours] = useState(false);
   const [product, setProduct] = useState(null);
-  const [catalogue, setCatalogue] = useState([]);
+  const [more, setMore] = useState({ colourways: [], related: [], look: [] });
   const [missing, setMissing] = useState(false);
 
-  useEffect(() => {
-    getCatalogue().then(setCatalogue).catch(() => {});
-  }, []);
-
-  // Render instantly from the cached catalogue when possible; the API gives the full record.
+  // Start from the card the visitor clicked (if we have it), then load the full record.
   useEffect(() => {
     let current = true;
     setMissing(false);
+    setAllColours(false);
     window.scrollTo(0, 0);
-    const cached = catalogue.find((p) => p.slug === slug);
-    setProduct(cached || null);
+    setProduct((p) => (p && p.slug === slug ? p : null));
     getProduct(slug)
       .then((res) => current && (res.data ? setProduct(res.data) : setMissing(true)))
-      .catch(() => current && !cached && setMissing(true));
+      .catch(() => current && setMissing(true));
+    getMore(slug)
+      .then((m) => current && setMore(m))
+      .catch(() => current && setMore({ colourways: [], related: [], look: [] }));
     return () => {
       current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   // Remember this product once its full record is in.
@@ -143,14 +110,7 @@ const Product = () => {
     };
   }, [product]);
 
-  const colourways = useMemo(() => {
-    if (!product) return [];
-    const family = familyOf(product.title);
-    return catalogue.filter((p) => familyOf(p.title) === family);
-  }, [product, catalogue]);
-
-  const related = useMemo(() => (product ? relatedTo(product, catalogue) : []), [product, catalogue]);
-  const look = useMemo(() => (product ? completeTheLook(product, catalogue) : []), [product, catalogue]);
+  const { colourways, related, look } = more;
   const recentOthers = useMemo(() => recent.filter((p) => p.slug !== slug).slice(0, 10), [recent, slug]);
 
   if (missing) {
@@ -174,6 +134,8 @@ const Product = () => {
   const { title, price, images = [], category, material, application, design, color, brand, width, rollLength,
     style, instruction, description, property, quantity } = product;
   const out = quantity === 0;
+  // Imported articles can be "price on request" until a price list is loaded.
+  const onRequest = product.priceOnRequest || !(price > 0);
   const quality = [category && category.name, style, design].filter(Boolean).join(", ");
   const link = `https://firstimp.in/product/${product.slug}`;
   const inBasket = sampleBasket.some((p) => p._id === String(product._id));
@@ -234,7 +196,8 @@ const Product = () => {
             </button>
           </div>
           {(quality || material) && <p className="pdp__quality">{[quality, material].filter(Boolean).join("; ")}</p>}
-          <div className="pdp__price">{inr(price)}</div>
+          <div className="pdp__price">{onRequest ? "Price on request" : inr(price)}</div>
+          {product.sku && <div className="pdp__sku">Article {product.sku}</div>}
 
           {colourways.length > 1 && (
             <div className="pdp__colourways">
@@ -242,7 +205,7 @@ const Product = () => {
                 {colourways.length} colourways{color ? ` · ${color}` : ""}
               </div>
               <div className="pdp__swatches">
-                {colourways.map((p) => (
+                {(allColours ? colourways : colourways.slice(0, 24)).map((p) => (
                   <Link
                     key={p._id}
                     to={`/product/${p.slug}`}
@@ -254,18 +217,27 @@ const Product = () => {
                   </Link>
                 ))}
               </div>
+              {colourways.length > 24 && (
+                <button type="button" className="text-link pdp__all-colours" onClick={() => setAllColours((v) => !v)}>
+                  {allColours ? "Show fewer" : `Show all ${colourways.length} colours`}
+                </button>
+              )}
             </div>
           )}
 
           <div className="pdp__actions">
-            {out ? (
+            {onRequest ? (
+              <button type="button" className="buybox__cta" onClick={() => setEnquire(true)}>
+                Ask for a price
+              </button>
+            ) : out ? (
               <NotifyForm product={product} />
             ) : (
               <button type="button" className="buybox__cta" onClick={() => addToCart(dispatch, product)}>
                 Add to bag
               </button>
             )}
-            {category?.slug !== "tassle" && (
+            {category?.slug !== "tassle" && !onRequest && (
               <QuantityCalculator
                 product={product}
                 onAdd={(count) => {
