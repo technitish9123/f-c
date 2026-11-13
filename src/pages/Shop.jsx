@@ -1,500 +1,256 @@
-import React, { useEffect, useState } from "react";
-import {
-  getProductsByCount,
-  fetchProductsBySearchFilter,
-} from "../functions/product";
-
-import { getCategories } from "../functions/category";
-import { getSubs } from "../functions/sub";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { Slider } from "antd";
+import { getProductsByCount } from "../functions/product";
 import LoadingCard from "../components/cards/LoadingCard";
 import ProductCard from "../components/cards/ProductCard";
-import { Spin, Slider, Checkbox, Badge, Button } from "antd";
-import Star from "../components/forms/Star";
+import {
+  FACETS,
+  COLOUR_FAMILIES,
+  SORTS,
+  indexProducts,
+  filterItems,
+  facetCounts,
+  sortItems,
+  searchItems,
+} from "../functions/facets";
 
-
-const colors = [
-  "AliceBlue",
-  "AntiqueWhite",
-  "Aqua",
-  "Aquamarine",
-  "Azure",
-  "Beige",
-  "Bisque",
-  "Black",
-  "BlanchedAlmond",
-  "Blue",
-  "BlueViolet",
-  "Brown",
-  "BurlyWood",
-  "CadetBlue",
-  "Chartreuse",
-  "Chocolate",
-  "Coral",
-  "CornflowerBlue",
-  "Cornsilk",
-  "Crimson",
-  "Cyan",
-  "DarkBlue",
-  "DarkCyan",
-  "DarkGoldenRod",
-  "DarkGray",
-  "DarkGrey",
-  "DarkGreen",
-  "DarkKhaki",
-  "DarkMagenta",
-  "DarkOliveGreen",
-  "DarkOrange",
-  "DarkOrchid",
-  "DarkRed",
-  "DarkSalmon",
-  "DarkSeaGreen",
-  "DarkSlateBlue",
-  "DarkSlateGray",
-  "DarkSlateGrey",
-  "DarkTurquoise",
-  "DarkViolet",
-  "DeepPink",
-  "DeepSkyBlue",
-  "DimGray",
-  "DimGrey",
-  "DodgerBlue",
-  "FireBrick",
-  "FloralWhite",
-  "ForestGreen",
-  "Fuchsia",
-  "Gainsboro",
-  "GhostWhite",
-  "Gold",
-  "GoldenRod",
-  "Gray",
-  "Grey",
-  "Green",
-  "GreenYellow",
-  "HoneyDew",
-  "HotPink",
-  "IndianRed",
-  "Indigo",
-  "Ivory",
-  "Khaki",
-  "Lavender",
-  "LavenderBlush",
-  "LawnGreen",
-  "LemonChiffon",
-  "LightBlue",
-  "LightCoral",
-  "LightCyan",
-  "LightGoldenRodYellow",
-  "LightGray",
-  "LightGrey",
-  "LightGreen",
-  "LightPink",
-  "LightSalmon",
-  "LightSeaGreen",
-  "LightSkyBlue",
-  "LightSlateGray",
-  "LightSlateGrey",
-  "LightSteelBlue",
-  "LightYellow",
-  "Lime",
-  "LimeGreen",
-  "Linen",
-  "Magenta",
-  "Maroon",
-  "MediumAquaMarine",
-  "MediumBlue",
-  "MediumOrchid",
-  "MediumPurple",
-  "MediumSeaGreen",
-  "MediumSlateBlue",
-  "MediumSpringGreen",
-  "MediumTurquoise",
-  "MediumVioletRed",
-  "MidnightBlue",
-  "MintCream",
-  "MistyRose",
-  "Moccasin",
-  "NavajoWhite",
-  "Navy",
-  "OldLace",
-  "Olive",
-  "OliveDrab",
-  "Orange",
-  "OrangeRed",
-  "Orchid",
-  "PaleGoldenRod",
-  "PaleGreen",
-  "PaleTurquoise",
-  "PaleVioletRed",
-  "PapayaWhip",
-  "PeachPuff",
-  "Peru",
-  "Pink",
-  "Plum",
-  "PowderBlue",
-  "Purple",
-  "RebeccaPurple",
-  "Red",
-  "RosyBrown",
-  "RoyalBlue",
-  "SaddleBrown",
-  "Salmon",
-  "SandyBrown",
-  "SeaGreen",
-  "SeaShell",
-  "Sienna",
-  "Silver",
-  "SkyBlue",
-  "SlateBlue",
-  "SlateGray",
-  "SlateGrey",
-  "Snow",
-  "SpringGreen",
-  "SteelBlue",
-  "Tan",
-  "Teal",
-  "Thistle",
-  "Tomato",
-  "Turquoise",
-  "Violet",
-  "Wheat",
-  "White",
-  "WhiteSmoke",
-  "Yellow",
-  "YellowGreen",
-];
-const brands = ["Apple", "Microsoft", "Samsung", "Lenovo", "ASUS"];
-
-
+const PAGE = 24;
+const swatchHex = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.key, f.hex]));
+const inr = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
+const emptySelection = () => Object.fromEntries(FACETS.map((f) => [f.key, []]));
 
 const Shop = () => {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [price, setPrice] = useState([]);
-  const [ok, setOk] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [categoryIds, setCategoryIds] = useState([]);
-  const [star, setStar] = useState();
-  const [subs, setSubs] = useState([]);
-  const [sub, setSub] = useState("");
-  const [color, setColor] = useState("");
-  const [brand, setBrand] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-
   const dispatch = useDispatch();
+  const searchText = useSelector((state) => state.search.text);
 
-  let { search } = useSelector((state) => ({ ...state }));
+  const [items, setItems] = useState([]); // indexed products
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(emptySelection);
+  const [price, setPrice] = useState(null); // [min, max] or null = any
+  const [sort, setSort] = useState("featured");
+  const [visible, setVisible] = useState(PAGE);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
+  // Load the whole catalogue once; search, filters and sorting run client-side.
   useEffect(() => {
-    loadAllProducts();
-    loadAllCategories();
-    getSubs().then((res) => setSubs(res.data));
+    let cancelled = false;
+    getProductsByCount(1000)
+      .then((res) => !cancelled && setItems(indexProducts(res.data || [])))
+      .catch(() => !cancelled && setItems([]))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const fetchProducts = (arg) => {
-    fetchProductsBySearchFilter(arg).then((res) => {
-      setProducts(res.data);
-    });
-  };
+  const searched = useMemo(() => searchItems(items, searchText), [items, searchText]);
 
-  //1. loading the products by default
-  const loadAllProducts = () => {
-    setLoading(true);
-    getProductsByCount(12).then((p) => {
-      setProducts(p.data);
-      setLoading(false);
-    });
-  };
+  // Reset paging whenever the result set changes.
+  useEffect(() => setVisible(PAGE), [selected, price, sort, searchText]);
 
-  const dispatcherText = () => {
-    dispatch({
-      type: "SEARCH_QUERY",
-      payload: { text: "" },
-    });
-  };
-
-  //2. loading the products based on search query
-
+  // Lock page scroll while the mobile filter sheet is open.
   useEffect(() => {
-    const timeOut = setTimeout(() => {
-      fetchProducts({ query: search.text });
-      if(!search.text) {
-        loadAllProducts()
-      }
-    }, 300);
+    document.body.classList.toggle("menu-open", sheetOpen);
+    return () => document.body.classList.remove("menu-open");
+  }, [sheetOpen]);
 
-    return () => clearTimeout(timeOut);
-  }, [search.text]);
+  const priceBounds = useMemo(() => {
+    if (!items.length) return [0, 0];
+    const prices = items.map((i) => i.price);
+    return [Math.min(...prices), Math.max(...prices)];
+  }, [items]);
 
-  //3. load Products based on Price Range
+  const results = useMemo(
+    () => sortItems(filterItems(searched, selected, price), sort),
+    [searched, selected, price, sort]
+  );
+  const counts = useMemo(() => facetCounts(searched, selected, price), [searched, selected, price]);
 
-  useEffect(() => {
-    fetchProducts({ price });
-  }, [ok]);
+  const toggle = (key, value) =>
+    setSelected((s) => ({
+      ...s,
+      [key]: s[key].includes(value) ? s[key].filter((v) => v !== value) : [...s[key], value],
+    }));
 
-  const handleSlider = (value) => {
-    dispatcherText();
-    setPrice(value);
-    setCategoryIds([]);
-    setStar(0);
-    setSub("");
-    setColor("");
+  const activeChips = [
+    ...FACETS.flatMap((f) => selected[f.key].map((v) => ({ key: f.key, value: v, label: v }))),
+    ...(price ? [{ key: "price", label: `${inr(price[0])} – ${inr(price[1])}` }] : []),
+    ...(searchText ? [{ key: "search", label: `“${searchText}”` }] : []),
+  ];
 
-    setTimeout(() => {
-      setOk(!ok);
-    }, 300);
+  const clearAll = () => {
+    setSelected(emptySelection());
+    setPrice(null);
+    if (searchText) dispatch({ type: "SEARCH_QUERY", payload: { text: "" } });
   };
 
-  //4. load products based on categories
-
-  const loadAllCategories = () =>
-    getCategories().then((res) => setCategories(res.data));
-
-  //show categories im a list of checkbox
-  const showCategories = () =>
-    categories.map((c) => (
-      <div key={c._id}>
-        <Checkbox
-          className="pb-2 pl-4 pr-4"
-          value={c._id}
-          onChange={handleCheck}
-          name="category"
-          checked={categoryIds.includes(c._id)}
-        >
-          {c.name}
-        </Checkbox>
-        <br />
-      </div>
-    ));
-
-  //handle checked value for categories
-  const handleCheck = (e) => {
-    dispatcherText();
-    setPrice([]);
-    setStar(0);
-    setSub("");
-    setColor("");
-
-    let inTheState = [...categoryIds];
-    let itemSelected = e.target.value;
-    let checkInTheState = inTheState.indexOf(itemSelected);
-
-    if (checkInTheState === -1) {
-      inTheState.push(itemSelected);
-    } else {
-      inTheState.splice(checkInTheState, 1);
-    }
-
-    setCategoryIds(inTheState);
-    fetchProducts({ category: inTheState });
+  const removeChip = (chip) => {
+    if (chip.key === "price") setPrice(null);
+    else if (chip.key === "search") dispatch({ type: "SEARCH_QUERY", payload: { text: "" } });
+    else toggle(chip.key, chip.value);
   };
 
-  // 5. load products based on the Star rating
-  const handleStarClick = (num) => {
-    dispatcherText();
-    setPrice([]);
-    setCategoryIds([]);
-    setStar(num);
-    setSub("");
-    setColor("");
-    //console.log(num);
-    fetchProducts({ stars: num });
-  };
+  const panel = (
+    <div className="facets">
+      {FACETS.map((f) => {
+        const options = counts[f.key] || [];
+        if (options.length < 2 && selected[f.key].length === 0) return null; // nothing to choose
+        return (
+          <details className="filter" key={f.key} open={f.key !== "composition"}>
+            <summary>
+              {f.label}
+              {selected[f.key].length > 0 && <span className="filter__n">{selected[f.key].length}</span>}
+            </summary>
+            {f.swatch ? (
+              <div className="swatches">
+                {options.map(({ value, count }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    className={`swatch${selected[f.key].includes(value) ? " is-on" : ""}`}
+                    onClick={() => toggle(f.key, value)}
+                    aria-pressed={selected[f.key].includes(value)}
+                    title={`${value} (${count})`}
+                  >
+                    <span className="swatch__chip" style={{ background: swatchHex[value] }} />
+                    <span className="swatch__label">{value}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <ul className="facet-list">
+                {options.map(({ value, count }) => (
+                  <li key={value}>
+                    <label className="facet">
+                      <input
+                        type="checkbox"
+                        checked={selected[f.key].includes(value)}
+                        onChange={() => toggle(f.key, value)}
+                      />
+                      <span className="facet__box" aria-hidden="true" />
+                      <span className="facet__label">{value}</span>
+                      <span className="facet__count">{count}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </details>
+        );
+      })}
 
-  const showStars = () => (
-    <div className="pr-4 pl-4 pb-2">
-      <Star starClick={handleStarClick} numberOfStars={5} />
-      <Star starClick={handleStarClick} numberOfStars={4} />
-      <Star starClick={handleStarClick} numberOfStars={3} />
-      <Star starClick={handleStarClick} numberOfStars={2} />
-      <Star starClick={handleStarClick} numberOfStars={1} />
+      {priceBounds[1] > priceBounds[0] && (
+        <details className="filter" open>
+          <summary>Price</summary>
+          <div className="price-range">
+            <Slider
+              range
+              min={priceBounds[0]}
+              max={priceBounds[1]}
+              step={100}
+              value={price || priceBounds}
+              onChange={(v) => setPrice(v)}
+              tooltip={{ formatter: (v) => inr(v) }}
+            />
+            <div className="price-range__values">
+              <span>{inr((price || priceBounds)[0])}</span>
+              <span>{inr((price || priceBounds)[1])}</span>
+            </div>
+          </div>
+        </details>
+      )}
     </div>
   );
-
-  //7. load products based on subs
-  const showSubs = () => (
-    <div className="pl-4 pr-4 pb-2">
-      {subs.map((s) => (
-        <div
-          key={s._id}
-          className="p-1 m-1 badge badge-info"
-          style={{ cursor: "pointer" }}
-          onClick={() => handleSub(s)}
-        >
-          {s.name}
-        </div>
-      ))}
-    </div>
-  );
-
-  const handleSub = (sub) => {
-    dispatcherText();
-    setPrice([]);
-    setCategoryIds([]);
-    setStar(0);
-    setSub(sub);
-    setColor("");
-    fetchProducts({ sub });
-  };
-
-  //load Products ased on colors
-  const showColors = () => {
-    return (
-      <div className="pb-2 pl-4 pr-5 ">
-        
-      
-        {/* {colors.map((c) => (
-          <div key={c} className="m-2 ">
-            <Button
-              block
-              style={{ background: c.toLowerCase(), width:"1rem" }}
-              onClick={() => handleColorClick(c)}
-            >
-             { <div className="ml-4">{c}</div>}
-            </Button>
-            <br />
-          </div>
-        ))} */}
-
-{colors.map((c) => (
-          <div key={c} className="m-2 ">
-            <Button
-            multiple
-              
-              style={{ background: c.toLowerCase(), width:"1rem" }}
-              onClick={() => handleColorClick(c)}
-            >
-             { <div className="ml-4">{c}</div>}
-            </Button>
-            <br />
-          </div>
-        ))}
-
-
-
-      </div>
-    );
-
-    
-  };
-
-  const handleColorClick = (color) => {
-    dispatcherText();
-    setPrice([]);
-    setCategoryIds([]);
-    setStar(0);
-    setSub("");
-    setColor(color);
-
-    fetchProducts({ color });
-  };
-
-  
-  //load Products ased on brand
-  // const showBrands = () => {
-  //   return (
-  //     <div className="pb-2 pl-4 pr-5">
-  //       {brands.map((c) => (
-  //        <div key={c}>
-  //        <Checkbox
-  //          className="pb-2 pl-4 pr-4"
-  //          value={c.name}
-  //          onChange={handleCheck}
-  //          name="category"
-          
-  //        >
-  //          {c.name}
-  //        </Checkbox>
-  //        <br />
-  //      </div>
-
-  //       ))}
-  //     </div>
-
-      
-  //   );
-  // };
-  //console.log(brands);
-
-  // const handleBrandClick = (brand) => {
-  //   dispatcherText();
-  //   setPrice([]);
-  //   setCategoryIds([]);
-  //   setStar(0);
-  //   setSub("");
-  //   setColor();
-  //   setBrand(brand)
-
-  //   fetchProducts({ brand });
-  // };
-
-  
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        <button
-          className="shop-filter-toggle"
-          onClick={() => setShowFilters(!showFilters)}
-        >
-          {showFilters ? "Hide filters" : "Filters"}
-        </button>
-        <div className={`col-md-3 shop-filters ${showFilters ? "open" : ""}`}>
-          <h4 className="shop-filters__title">Filters</h4>
+    <div className="shop">
+      <header className="shop__head">
+        <div className="eyebrow">The collection</div>
+        <h1>{searchText ? `Results for “${searchText}”` : "Fabrics & Wallcoverings"}</h1>
+      </header>
 
-          <details className="filter" open>
-            <summary>Price</summary>
-            <Slider
-              tooltip={{ formatter: (v) => `₹ ${v}` }}
-              range={{ draggableTrack: true }}
-              max={20000}
-              value={price}
-              onChange={handleSlider}
-            />
-          </details>
+      <div className="shop__body">
+        <aside className={`shop__aside${sheetOpen ? " is-open" : ""}`} aria-label="Filters">
+          <div className="shop__aside-head">
+            <span className="eyebrow">Filter</span>
+            {activeChips.length > 0 && (
+              <button type="button" className="text-link" onClick={clearAll}>
+                Clear all
+              </button>
+            )}
+            <button type="button" className="shop__sheet-close" onClick={() => setSheetOpen(false)} aria-label="Close filters">
+              ✕
+            </button>
+          </div>
+          {panel}
+          <div className="shop__sheet-foot">
+            <button type="button" className="ink-btn" onClick={() => setSheetOpen(false)}>
+              Show {results.length} {results.length === 1 ? "result" : "results"}
+            </button>
+          </div>
+        </aside>
 
-          <details className="filter" open>
-            <summary>Categories</summary>
-            {showCategories()}
-          </details>
+        <section className="shop__results">
+          <div className="shop__toolbar">
+            <button type="button" className="shop__filter-btn" onClick={() => setSheetOpen(true)}>
+              Filter{activeChips.length ? ` (${activeChips.length})` : ""}
+            </button>
+            <span className="shop__count">
+              {loading ? "Loading…" : `${results.length} ${results.length === 1 ? "piece" : "pieces"}`}
+            </span>
+            <label className="shop__sort">
+              <span className="eyebrow">Sort</span>
+              <select value={sort} onChange={(e) => setSort(e.target.value)}>
+                {SORTS.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
-          <details className="filter" open>
-            <summary>Rating</summary>
-            {showStars()}
-          </details>
+          {activeChips.length > 0 && (
+            <div className="chips">
+              {activeChips.map((c) => (
+                <button key={`${c.key}:${c.label}`} type="button" className="chip" onClick={() => removeChip(c)}>
+                  {c.label} <span aria-hidden="true">✕</span>
+                  <span className="sr-only">Remove filter</span>
+                </button>
+              ))}
+            </div>
+          )}
 
-          <details className="filter">
-            <summary>Sub categories</summary>
-            {showSubs()}
-          </details>
-
-          <details className="filter">
-            <summary>Colours</summary>
-            <div className="filter__scroll">{showColors()}</div>
-          </details>
-        </div>
-        <div className="col-md-9">
           {loading ? (
-            <LoadingCard count={9} title />
+            <LoadingCard count={9} />
+          ) : results.length === 0 ? (
+            <div className="empty-state">
+              <p>No pieces match these filters.</p>
+              <button type="button" className="buybox__cta" onClick={clearAll}>
+                Clear filters
+              </button>
+            </div>
           ) : (
             <>
-              <h4 className="section-title">Products</h4>
-              {products.length > 0 ? (
-                <div className="row product-grid">
-                  {products.map((p) => (
-                    <div className="col-md-4" key={p._id}>
-                      <ProductCard product={p} />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="empty-state">
-                  <p>No products match these filters.</p>
+              <div className="product-grid">
+                {results.slice(0, visible).map(({ product }) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
+              </div>
+              {visible < results.length && (
+                <div className="shop__more">
+                  <p className="eyebrow">
+                    Showing {visible} of {results.length}
+                  </p>
+                  <button type="button" className="ink-btn ink-btn--ghost" onClick={() => setVisible((v) => v + PAGE)}>
+                    Load more
+                  </button>
                 </div>
               )}
             </>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );
