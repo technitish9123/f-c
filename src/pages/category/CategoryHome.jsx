@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { getCategory } from "../../functions/category";
 import LoadingCard from "../../components/cards/LoadingCard";
 import ProductCard from "../../components/cards/ProductCard";
-import { Spin } from "antd";
 
 const CategoryHome = ({ match }) => {
   const [category, setCategory] = useState({});
@@ -11,14 +10,24 @@ const CategoryHome = ({ match }) => {
 
   const { slug } = match.params;
 
+  // Re-fetch whenever the slug changes (e.g. Fabrics -> Wallpaper from the
+  // header); ignore a slower response from the previous category.
   useEffect(() => {
+    let current = true;
     setLoading(true);
-    getCategory(slug).then((res) => {
-      setCategory(res.data.category);
-      setProducts(res.data.products);
-      setLoading(false);
-    });
-  }, []);
+    window.scrollTo(0, 0);
+    getCategory(slug)
+      .then((res) => {
+        if (!current) return;
+        setCategory(res.data.category);
+        setProducts(res.data.products);
+      })
+      .catch(() => current && setProducts([]))
+      .finally(() => current && setLoading(false));
+    return () => {
+      current = false;
+    };
+  }, [slug]);
   return (
     <div className="container">
       <div className="row">

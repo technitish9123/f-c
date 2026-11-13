@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import LoadingCard from "../../components/cards/LoadingCard";
 import ProductCard from "../../components/cards/ProductCard";
 import { getSub } from "../../functions/sub";
-import { Spin } from "antd";
 
 const SubHome = ({ match }) => {
   const [sub, setSub] = useState({});
@@ -11,13 +10,23 @@ const SubHome = ({ match }) => {
 
   const { slug } = match.params;
 
+  // Re-fetch whenever the slug changes; ignore a slower previous response.
   useEffect(() => {
-    getSub(slug).then((res) => {
-      setSub(res.data.sub);
-      setProducts(res.data.products);
-      setLoading(false);
-    });
-  }, []);
+    let current = true;
+    setLoading(true);
+    window.scrollTo(0, 0);
+    getSub(slug)
+      .then((res) => {
+        if (!current) return;
+        setSub(res.data.sub);
+        setProducts(res.data.products);
+      })
+      .catch(() => current && setProducts([]))
+      .finally(() => current && setLoading(false));
+    return () => {
+      current = false;
+    };
+  }, [slug]);
 
   return (
     <div className="container">
