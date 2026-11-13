@@ -1,23 +1,24 @@
 import firebase from "firebase/app";
 import "firebase/auth";
 
-
-// Your web app's Firebase configuration
-var firebaseConfig = {
-  apiKey: "AIzaSyAdaK3MSwAVFa4WV46kG5bWM62kV7WKj5Q",
-  authDomain: "auth-e09a4.firebaseapp.com",
-  projectId: "auth-e09a4",
-  storageBucket: "auth-e09a4.appspot.com",
-  messagingSenderId: "71647596585",
-  appId: "1:71647596585:web:4d1b3abfa9cde35d364c38"
-  
+// Firebase web config comes from the environment (Render env vars / .env).
+// These values are public identifiers, not secrets, but keeping them out of
+// the code means a key rotation never needs a code change.
+const firebaseConfig = {
+  apiKey: import.meta.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: import.meta.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.REACT_APP_FIREBASE_APP_ID,
 };
-  // Initialize Firebase
 
-    firebase.initializeApp(firebaseConfig);
+if (!firebaseConfig.apiKey) {
+  // Fail loudly in the console rather than with a cryptic auth error.
+  console.error("Firebase config missing: set the REACT_APP_FIREBASE_* environment variables.");
+}
 
-  
+firebase.initializeApp(firebaseConfig);
 
-  // exporting firebase
-  export const auth = firebase.auth();
-  export const googleAuthProvider = new firebase.auth.GoogleAuthProvider(); 
+export const auth = firebase.auth();
+export const googleAuthProvider = new firebase.auth.GoogleAuthProvider();
