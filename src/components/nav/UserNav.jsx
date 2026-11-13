@@ -1,27 +1,23 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
+
+const links = [
+  { to: "/user/history", label: "Orders" },
+  { to: "/user/wishlist", label: "Wishlist" },
+  { to: "/user/password", label: "Password" },
+];
 
 const UserNav = () => (
-  <nav>
-    <ul className="nav flex-column">
-      <li className="nav-item">
-        <Link to="/user/history" className="nav-link">
-          History
-        </Link>
-      </li>
-
-      <li className="nav-item">
-        <Link to="/user/password" className="nav-link">
-          Password
-        </Link>
-      </li>
-
-      <li className="nav-item">
-        <Link to="/user/wishlist" className="nav-link">
-          Wishlist
-        </Link>
-      </li>
-    </ul>
+  <nav className="account-nav" aria-label="Account">
+    {links.map((l) => (
+      <NavLink
+        key={l.to}
+        to={l.to}
+        className={({ isActive }) => `account-nav__link${isActive ? " is-active" : ""}`}
+      >
+        {l.label}
+      </NavLink>
+    ))}
   </nav>
 );
 

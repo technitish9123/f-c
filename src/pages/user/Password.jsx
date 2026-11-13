@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import UserNav from "../../components/nav/UserNav";
+import AccountLayout from "../../components/nav/AccountLayout";
 import { auth } from "../../firebase";
 import { toast } from "react-toastify";
 
@@ -27,12 +27,14 @@ const Password = () => {
   const passwordUpdateForm = () => (
     <form onSubmit={handleSubmit}>
       <div className="form-group">
-        <label>Your Password</label>
+        <label className="eyebrow" htmlFor="new-password">New password</label>
         <input
           type="password"
           onChange={(e) => setPassword(e.target.value)}
           className="form-control"
-          placeholder="Enter new password"
+          placeholder="At least 6 characters"
+          id="new-password"
+          autoComplete="new-password"
           disabled={loading}
           value={password}
         />
@@ -40,28 +42,16 @@ const Password = () => {
           className="btn btn-primary"
           disabled={!password || password.length < 6 || loading}
         >
-          Submit
+          Update password
         </button>
       </div>
     </form>
   );
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        <div className="col-md-2">
-          <UserNav />
-        </div>
-        <div className="col">
-          {loading ? (
-            <h4 className="text-danger">Loading..</h4>
-          ) : (
-            <h4>Password Update</h4>
-          )}
-          {passwordUpdateForm()}
-        </div>
-      </div>
-    </div>
+    <AccountLayout title="Password" intro="Choose a new password of at least six characters.">
+      <div className="account-form">{passwordUpdateForm()}</div>
+    </AccountLayout>
   );
 };
 
