@@ -1,17 +1,9 @@
 import React from "react";
 
-// Destination kept exactly as before; confirm the inbox with the business.
-const FORM_ACTION = "https://formsubmit.co/playbloxblog@gmail.com";
+// Enquiries are delivered to the showroom inbox via FormSubmit.
+const FORM_ACTION = "https://formsubmit.co/meher@firstimp.in";
 
-const PHONES = [
-  "+91-22-23631490",
-  "+91-22-23634167",
-  "+91-22-23686547",
-  "+91-22-66642030",
-  "+91-22-66642031",
-  "+91 7777054811",
-  "+91 9323943092",
-];
+const PHONES = ["7777045811", "+91-22-66642030", "+91-22-66642031"];
 
 const Contact = () => (
   <div className="contact-page">
