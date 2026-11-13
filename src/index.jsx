@@ -27,6 +27,7 @@ const antdTheme = {
 };
 import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter } from "react-router-dom";
+import "./styles/bootstrap-subset.css";
 import "./styles/theme.css";
 
 import { createStore, compose } from "redux";

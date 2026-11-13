@@ -38,10 +38,10 @@ a:hover { color: var(--bronze); text-decoration: none; }
 img { max-width: 100%; }
 ::selection { background: var(--ink); color: var(--paper); }
 hr { border: 0; border-top: 1px solid var(--line); }
-.text-danger, .text-primary, .text-success { color: var(--ink) !important; }
+.text-danger, .text-primary { color: var(--ink) !important; }
 
 /* small uppercase label used across the site */
-.eyebrow, .label-caps {
+.eyebrow {
   font-family: var(--sans); font-size: 11px; font-weight: 400; letter-spacing: var(--track);
   text-transform: uppercase; color: var(--stone);
 }
@@ -110,7 +110,7 @@ hr { border: 0; border-top: 1px solid var(--line); }
 .list-group-item { background: transparent; border-color: var(--line); }
 
 /* tables */
-.table-responsive, table { display: block; overflow-x: auto; }
+table { display: block; overflow-x: auto; }
 @media (min-width: 768px) { table { display: table; } }
 
 /* scroll reveal (progressive — only when JS adds .reveal-ready) */
@@ -290,7 +290,7 @@ hr { border: 0; border-top: 1px solid var(--line); }
 /* ---------- Cart ---------- */
 
 .summary-card { background: var(--white) !important; padding: 36px 32px !important; }
-.summary-card__title, .summary-card h4 { font-family: var(--sans) !important; font-size: 11px !important; letter-spacing: var(--track);
+.summary-card h4 { font-family: var(--sans) !important; font-size: 11px !important; letter-spacing: var(--track);
   text-transform: uppercase; color: var(--stone); margin-bottom: 18px; font-weight: 400; }
 .summary-card .cart-details { display: flex; justify-content: space-between; color: var(--ink-2); font-size: 13px; margin: 8px 0; }
 .summary-card h5 { font-family: var(--serif); font-size: 26px; display: flex; justify-content: space-between; align-items: baseline; }
@@ -358,7 +358,6 @@ hr { border: 0; border-top: 1px solid var(--line); }
 @media (max-width: 767px) {
   .row { margin-left: 0; margin-right: 0; }
   [class*="col-md-"] { padding-left: 0; padding-right: 0; }
-  .display-4 { font-size: 1.75rem !important; }
 }
 
 /* ---------- Refinements ---------- */
@@ -574,8 +573,8 @@ body.menu-open { overflow: hidden; }
 .legal > h2 { font-size: clamp(34px, 4.4vw, 56px); font-weight: 300; margin: 14px 0 40px; padding-bottom: 28px; border-bottom: 1px solid var(--line); color: var(--ink); }
 .legal h4 { font-family: var(--sans); font-size: 11px; font-weight: 400; letter-spacing: var(--track); text-transform: uppercase; color: var(--ink); margin: 44px 0 12px; }
 .legal p { margin: 0 0 14px; }
-.btn-outline-primary, .btn-outline-secondary { background: transparent !important; border: 1px solid var(--ink) !important; color: var(--ink) !important; }
-.btn-outline-primary:hover, .btn-outline-secondary:hover { background: var(--ink) !important; color: var(--paper) !important; }
+.btn-outline-primary { background: transparent !important; border: 1px solid var(--ink) !important; color: var(--ink) !important; }
+.btn-outline-primary:hover { background: var(--ink) !important; color: var(--paper) !important; }
 
 /* ---------- Loading skeletons ---------- */
 .skeleton { background: linear-gradient(100deg, var(--paper-2) 30%, #f6f2ec 50%, var(--paper-2) 70%);
