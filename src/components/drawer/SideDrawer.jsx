@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Drawer, Button } from "antd";
 import laptop from "../../images/laptop.png";
 
 const SideDrawer = () => {
   const dispatch = useDispatch();
   const { drawer, cart } = useSelector((state) => ({ ...state }));
+  const { pathname } = useLocation();
+
+  // Close the "added to bag" drawer whenever the page changes.
+  useEffect(() => {
+    dispatch({ type: "DRAWER_VISIBILITY", payload: false });
+  }, [pathname, dispatch]);
 
   const handleCloseDrawer = () => {
     dispatch({

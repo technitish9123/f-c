@@ -49,10 +49,15 @@ const Shop = () => {
   // Reset paging whenever the result set changes.
   useEffect(() => setVisible(PAGE), [selected, price, sort, searchText]);
 
-  // Lock page scroll while the mobile filter sheet is open.
+  // Lock page scroll while the filter drawer is open; Esc closes it.
   useEffect(() => {
     document.body.classList.toggle("menu-open", sheetOpen);
-    return () => document.body.classList.remove("menu-open");
+    const onKey = (e) => e.key === "Escape" && setSheetOpen(false);
+    if (sheetOpen) window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.classList.remove("menu-open");
+      window.removeEventListener("keydown", onKey);
+    };
   }, [sheetOpen]);
 
   const priceBounds = useMemo(() => {
@@ -167,7 +172,8 @@ const Shop = () => {
     <div className="shop">
       <header className="shop__head">
         <div className="eyebrow">The collection</div>
-        <h1>{searchText ? `Results for “${searchText}”` : "Fabrics & Wallcoverings"}</h1>
+        <h1>{searchText ? `Results for “${searchText}”` : "Product finder"}</h1>
+        {!searchText && <p>Fabrics and wallcoverings, filtered by use, colour, pattern and composition.</p>}
       </header>
 
       <div className="shop__body">
@@ -186,21 +192,16 @@ const Shop = () => {
           {panel}
           <div className="shop__sheet-foot">
             <button type="button" className="ink-btn" onClick={() => setSheetOpen(false)}>
-              Show {results.length} {results.length === 1 ? "result" : "results"}
+              Show {results.length.toLocaleString("en-IN")} {results.length === 1 ? "product" : "products"}
             </button>
           </div>
         </aside>
+        {sheetOpen && <div className="shop__scrim" onClick={() => setSheetOpen(false)} aria-hidden="true" />}
 
         <section className="shop__results">
           <div className="shop__toolbar">
-            <button type="button" className="shop__filter-btn" onClick={() => setSheetOpen(true)}>
-              Filter{activeChips.length ? ` (${activeChips.length})` : ""}
-            </button>
-            <span className="shop__count">
-              {loading ? "Loading…" : `${results.length} ${results.length === 1 ? "piece" : "pieces"}`}
-            </span>
             <label className="shop__sort">
-              <span className="eyebrow">Sort</span>
+              <span className="eyebrow">Sorting</span>
               <select value={sort} onChange={(e) => setSort(e.target.value)}>
                 {SORTS.map((s) => (
                   <option key={s.key} value={s.key}>
@@ -209,6 +210,13 @@ const Shop = () => {
                 ))}
               </select>
             </label>
+            <span className="shop__count">
+              {loading ? "Loading…" : `${results.length.toLocaleString("en-IN")} ${results.length === 1 ? "product" : "products"}`}
+            </span>
+            <button type="button" className="shop__filter-btn" onClick={() => setSheetOpen(true)} aria-expanded={sheetOpen}>
+              {activeChips.length > 0 && <span className="shop__filter-n">{activeChips.length}</span>}
+              Filter
+            </button>
           </div>
 
           {activeChips.length > 0 && (
