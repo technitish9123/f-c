@@ -89,6 +89,7 @@ const App = () => {
         hideProgressBar
         closeOnClick
         pauseOnHover
+        pauseOnFocusLoss={false}
         draggable={false}
         icon={false}
         transition={Slide}
