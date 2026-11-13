@@ -1,86 +1,98 @@
 import React, { useState, useEffect } from "react";
-import UserNav from "../../components/nav/UserNav";
-import {
-  getUserWishlist,
-  removeProductFromWishlist,
-} from "../../functions/user";
-import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
-import { Card, Spin } from "antd";
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { getUserWishlist, removeProductFromWishlist } from "../../functions/user";
+import AccountLayout from "../../components/nav/AccountLayout";
 import laptop from "../../images/laptop.png";
 
-const { Meta } = Card;
-
+const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
 const Wishlist = () => {
+  const user = useSelector((state) => state.user);
   const [wishlist, setWishlist] = useState([]);
-  const { user, cart } = useSelector((state) => ({ ...state }));
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [removing, setRemoving] = useState(null);
+
+  const loadWishlist = () =>
+    getUserWishlist(user.token)
+      .then((res) => setWishlist((res.data && res.data.wishlist) || []))
+      .catch(() => toast.error("Couldn't load your wishlist"))
+      .finally(() => setLoading(false));
 
   useEffect(() => {
-    loadWishlist();
-  }, []);
+    if (user && user.token) loadWishlist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
-  const loadWishlist = () => {
-    setLoading(true);
-    getUserWishlist(user.token).then((res) => {
-      console.log(res.data.wishlist);
-      setWishlist(res.data.wishlist);
-      setLoading(false);
-    });
+  const handleRemove = (productId) => {
+    setRemoving(productId);
+    removeProductFromWishlist(user.token, productId)
+      .then((res) => {
+        if (res.data.ok) setWishlist((list) => list.filter((w) => w._id !== productId));
+      })
+      .catch(() => toast.error("Couldn't remove that item"))
+      .finally(() => setRemoving(null));
   };
 
-  const handleRemove = (productId) =>
-    removeProductFromWishlist(user.token, productId).then((res) => {
-      console.log(res.data);
-      if (res.data.ok) {
-        loadWishlist();
-      }
-    });
+  const items = wishlist.filter(Boolean);
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        <div className="col-md-2">
-          <UserNav />
+    <AccountLayout
+      title="Wishlist"
+      intro={
+        !loading && items.length
+          ? `${items.length} saved ${items.length === 1 ? "piece" : "pieces"}.`
+          : null
+      }
+    >
+      {loading ? (
+        <div className="account__loading">Loading your wishlist…</div>
+      ) : items.length === 0 ? (
+        <div className="empty-state">
+          <p>Nothing saved yet.</p>
+          <Link to="/shop" className="buybox__cta">
+            Discover fabrics
+          </Link>
         </div>
-        <div className="col">
-          <h4>Wishlist</h4>
-          {loading ? (
-            <Spin className="m-5" />
-          ) : (
-            <div className="row mt-5">
-              {wishlist.map((w) => (
-                <div className="col-md-4">
-                  <Card
-                    cover={
-                      <img
-                      src={w.images && w.images.length > 0 ? w.images[0].url : laptop}
-                        style={{ height: "200px", objectFit: "cover" }}
-                        className="p-3"
-                      />
-                    }
-                    actions={[
-                      <Link to={`/product/${w.slug}`}>
-                        <EyeOutlined className="text-info" /> <br /> View
-                        Product
-                      </Link>,
-                      <div onClick={() => handleRemove(w._id)}>
-                        <DeleteOutlined className="text-danger" /> <br /> Remove
-                        from Wishlist
-                      </div>,
-                    ]}
-                  >
-                    <Meta title={w.title} description={`${w.description.substring(0, 40)} .....`} />
-                  </Card>
+      ) : (
+        <div className="product-grid wishlist-grid">
+          {items.map((w) => {
+            const img = w.images && w.images.length ? w.images[0].url : laptop;
+            const out = w.quantity === 0;
+            return (
+              <div className="pcard" key={w._id}>
+                <Link to={`/product/${w.slug}`} className="pcard__media">
+                  <img src={img} alt={w.title} loading="lazy" />
+                  {w.images && w.images.length > 1 && (
+                    <img className="pcard__alt" src={w.images[1].url} alt="" loading="lazy" />
+                  )}
+                  {out && <span className="pcard__badge">Sold out</span>}
+                </Link>
+                <div className="pcard__body">
+                  <div className="pcard__row">
+                    <Link to={`/product/${w.slug}`} className="pcard__title">
+                      {w.title}
+                    </Link>
+                    <span className="pcard__price">{inr(w.price)}</span>
+                  </div>
+                  <div className="wishlist__actions">
+                    <Link to={`/product/${w.slug}`}>View</Link>
+                    <button
+                      onClick={() => handleRemove(w._id)}
+                      disabled={removing === w._id}
+                      aria-label={`Remove ${w.title} from wishlist`}
+                    >
+                      {removing === w._id ? "Removing…" : "Remove"}
+                    </button>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            );
+          })}
         </div>
-      </div>
-    </div>
+      )}
+    </AccountLayout>
   );
 };
 

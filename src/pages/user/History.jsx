@@ -1,118 +1,170 @@
 import React, { useEffect, useState } from "react";
-import UserNav from "../../components/nav/UserNav";
 import { Link } from "react-router-dom";
-import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
-import { useSelector, useDispatch } from "react-redux";
-import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 import { getUserOrders } from "../../functions/user";
-import ShowPaymentInfo from "../../components/cards/ShowPaymentInfo";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import Invoice from "../../components/order/Invoice";
-import { Spin } from "antd";
+import AccountLayout from "../../components/nav/AccountLayout";
+import laptop from "../../images/laptop.png";
+
+const STEPS = ["Not Processed", "Processing", "Dispatched", "Delivered"];
+const STEP_LABEL = {
+  "Not Processed": "Order placed",
+  Processing: "Processing",
+  Dispatched: "Dispatched",
+  Delivered: "Delivered",
+};
+
+const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+
+const formatDate = (d) =>
+  d
+    ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })
+    : "";
+
+// Prefer the amount actually charged (includes coupons); fall back to item prices.
+const orderTotal = (order) => {
+  const charged =
+    order.paymentIntent &&
+    order.paymentIntent.paymentInfo &&
+    order.paymentIntent.paymentInfo.stripeResponse &&
+    order.paymentIntent.paymentInfo.stripeResponse.amount;
+  if (charged) return charged / 100;
+  return order.products.reduce((sum, p) => sum + (p.product ? p.product.price * p.count : 0), 0);
+};
+
+const StatusTimeline = ({ status }) => {
+  if (status === "Cancelled") {
+    return <div className="order__cancelled">This order was cancelled</div>;
+  }
+  const current = Math.max(0, STEPS.indexOf(status));
+  return (
+    <ol className="order__steps" aria-label={`Status: ${STEP_LABEL[status] || status}`}>
+      {STEPS.map((s, i) => (
+        <li
+          key={s}
+          className={i < current ? "is-done" : i === current ? "is-current" : ""}
+          aria-current={i === current ? "step" : undefined}
+        >
+          <span>{STEP_LABEL[s]}</span>
+        </li>
+      ))}
+    </ol>
+  );
+};
+
+const OrderCard = ({ order }) => (
+  <article className="order">
+    <header className="order__head">
+      <div>
+        <div className="eyebrow">Order</div>
+        <div className="order__id">№ {String(order._id).slice(-8).toUpperCase()}</div>
+      </div>
+      <div>
+        <div className="eyebrow">Placed on</div>
+        <div>{formatDate(order.createdAt)}</div>
+      </div>
+      <div>
+        <div className="eyebrow">Total</div>
+        <div className="order__total">{orderTotal(order) ? inr(orderTotal(order)) : "—"}</div>
+      </div>
+    </header>
+
+    <StatusTimeline status={order.orderStatus} />
+
+    <ul className="order__items">
+      {order.products.map((p, i) => {
+        const prod = p.product;
+        if (!prod) {
+          return (
+            <li key={i} className="order__item order__item--missing">
+              This item is no longer available.
+            </li>
+          );
+        }
+        const img = prod.images && prod.images.length ? prod.images[0].url : laptop;
+        return (
+          <li key={i} className="order__item">
+            <Link to={`/product/${prod.slug}`} className="order__thumb">
+              <img src={img} alt={prod.title} loading="lazy" />
+            </Link>
+            <div className="order__info">
+              <Link to={`/product/${prod.slug}`} className="order__title">
+                {prod.title}
+              </Link>
+              <div className="order__meta">
+                {[prod.brand, p.color || prod.color].filter(Boolean).join(" · ")}
+              </div>
+              <div className="order__meta">Qty {p.count}</div>
+            </div>
+            <div className="order__price">{inr(prod.price * p.count)}</div>
+          </li>
+        );
+      })}
+    </ul>
+
+    <footer className="order__foot">
+      <PDFDownloadLink
+        document={<Invoice order={order} />}
+        fileName={`first-impression-invoice-${String(order._id).slice(-8)}.pdf`}
+        className="link-line"
+      >
+        {({ loading }) => (loading ? "Preparing invoice…" : "Download invoice")}
+      </PDFDownloadLink>
+    </footer>
+  </article>
+);
 
 const History = () => {
-  const { user, cart } = useSelector((state) => ({ ...state }));
-  const dispatch = useDispatch();
-
+  const user = useSelector((state) => state.user);
   const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
-    loadOrders();
-  }, []);
-
-  const loadOrders = () => {
+    if (!user || !user.token) return;
     setLoading(true);
-    getUserOrders(user.token).then((res) => {
-      console.log(res.data);
-      setOrders(res.data);
-      setLoading(false);
-    });
-  };
-
-  const showOrderInTable = (order) => (
-    <table className="table table-bordered">
-      <thead className="thead-light">
-        <tr>
-          <th scope="col">Title</th>
-          <th scope="col">Price</th>
-          <th scope="col">Brand</th>
-          <th scope="col">Color</th>
-          <th scope="col">Quantity</th>
-          <th scope="col">Shipping</th>
-          <th scope="col">Delivery Status</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {order.products.map((p, i) => (
-          <tr key={i}>
-            <td>
-              <strong>{p.product.title}</strong>
-            </td>
-            <td>{p.product.price}</td>
-            <td>{p.product.brand}</td>
-            <td>{p.product.color}</td>
-            <td>{p.count}</td>
-            <td>
-              {p.product.shipping === "Yes" ? (
-                <CheckCircleOutlined style={{ color: "green" }} />
-              ) : (
-                <CloseCircleOutlined className="text-danger" />
-              )}
-            </td>
-            <td>{order.orderStatus}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-
-  const showDowloadLink = (order) => (
-    <PDFDownloadLink
-      document={<Invoice order={order} />}
-      fileName="invoice.pdf"
-      className="btn btn-sm btn-outline-primary"
-    >
-      Download Invoice
-    </PDFDownloadLink>
-  );
-
-  const showEachOrders = () =>
-    orders.map((order, i) => (
-      <div key={i} className="m-5 p-3 card">
-        {/* <ShowPaymentInfo order={order} /> */}
-
-        {showOrderInTable(order)}
-        <div className="row">
-          <div className="col text-center">{showDowloadLink(order)}</div>
-        </div>
-      </div>
-    ));
+    getUserOrders(user.token)
+      .then((res) => setOrders(res.data || []))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false));
+  }, [user]);
 
   return (
-    <div className="container-fluid">
-      <div className="row">
-        <div className="col-md-2">
-          <UserNav />
+    <AccountLayout
+      title="Your orders"
+      intro={
+        !loading && orders.length
+          ? `${orders.length} ${orders.length === 1 ? "order" : "orders"}, most recent first.`
+          : null
+      }
+    >
+      {loading ? (
+        <div className="account__loading">Loading your orders…</div>
+      ) : error ? (
+        <div className="empty-state">
+          <p>We couldn't load your orders.</p>
+          <button className="buybox__cta" onClick={() => window.location.reload()}>
+            Try again
+          </button>
         </div>
-
-        <div className="col">
-          {loading ? (
-            <div className="h-100 w-100">
-              <Spin className="mx-auto my-auto" />
-            </div>
-          ) : (
-            <>
-              <h4>
-                {orders.length > 0 ? "User Purchase Orders" : "No Orders"}
-              </h4>
-              {showEachOrders()}{" "}
-            </>
-          )}
+      ) : orders.length === 0 ? (
+        <div className="empty-state">
+          <p>You haven't placed an order yet.</p>
+          <Link to="/shop" className="buybox__cta">
+            Explore the collection
+          </Link>
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="order-list">
+          {[...orders]
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .map((order) => (
+              <OrderCard key={order._id} order={order} />
+            ))}
+        </div>
+      )}
+    </AccountLayout>
   );
 };
 

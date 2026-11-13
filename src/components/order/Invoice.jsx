@@ -10,7 +10,14 @@ import {
   DataTableCell,
 } from "@david.kucsai/react-pdf-table";
 
-const Invoice = ({ order }) => (
+const Invoice = ({ order }) => {
+  // Orders can lack payment/shipping details or reference deleted products;
+  // never let one bad field crash the account page.
+  const pi = order.paymentIntent || {};
+  const info = pi.paymentInfo || {};
+  const ship = pi.shippingAdd || {};
+  const paid = info.stripeResponse && info.stripeResponse.amount;
+  return (
   <Document>
     <Page size="A4" style={styles.body}>
       <View>
@@ -33,36 +40,37 @@ const Invoice = ({ order }) => (
         </Table>
         <Table data={order.products}>
           <TableBody>
-            <DataTableCell getContent={(x) => x.product.title} />
-            <DataTableCell getContent={(x) => ` ₹ ${x.product.price}`} />
+            <DataTableCell getContent={(x) => (x.product ? x.product.title : "Item no longer available")} />
+            <DataTableCell getContent={(x) => x.product ? ` ₹ ${x.product.price}` : ""} />
             <DataTableCell getContent={(x) => x.count} />
-            <DataTableCell getContent={(x) => x.product.brand} />
-            <DataTableCell getContent={(x) => x.product.color} />
+            <DataTableCell getContent={(x) => (x.product ? x.product.brand : "")} />
+            <DataTableCell getContent={(x) => (x.product ? x.product.color : "")} />
           </TableBody>
         </Table>
 
         <Text style={styles.text}>
-        <Text>Payment Status: {"                         "} { order.paymentIntent.paymentInfo.status} </Text>{"\n"}
+        <Text>Payment Status: {"                         "} { info.status || "—"} </Text>{"\n"}
           <Text>Date: {"                             "} {new Date(order.createdAt).toLocaleDateString()}</Text>{"\n"}
-          <Text>Order ID: {"                         "} { order.paymentIntent.paymentInfo.id} </Text>{"\n"}
+          <Text>Order ID: {"                         "} { info.id || order._id} </Text>{"\n"}
          
           <Text>STATUS: {"                           "} {order.orderStatus}</Text>{"\n"}
           <Text>
             Total Paid: {"                           "} {"₹"}
 
            
-            {(order.paymentIntent.paymentInfo.stripeResponse.amount / 100).toLocaleString("en-IN")}
+            {paid ? (paid / 100).toLocaleString("en-IN") : "—"}
           </Text>{"\n"}{"\n"}
         </Text>
-        <Text>Name:{"                         "}{order.paymentIntent.shippingAdd.name}</Text>
-        <Text>Mobile Num:{"                   "}{order.paymentIntent.shippingAdd.mobileNum}</Text>
-        <Text>Email:{"                        "}{order.paymentIntent.shippingAdd.email}</Text>
+        <Text>Name:{"                         "}{ship.name || ""}</Text>
+        <Text>Mobile Num:{"                   "}{ship.mobileNum || ""}</Text>
+        <Text>Email:{"                        "}{ship.email || ""}</Text>
         
-        <Text>Delivery Address: {"                   "}{order.paymentIntent.shippingAdd.add}</Text>
+        <Text>Delivery Address: {"                   "}{ship.add || ""}</Text>
         <Text style={styles.footer} >Thank You For Shopping With Us</Text>
       </View>
     </Page>
   </Document>
-);
+  );
+};
 
 export default Invoice;
