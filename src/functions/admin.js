@@ -30,9 +30,9 @@ export const updateOrderStatus = async (authtoken, orderId, orderStatus) =>
   //   },
   // });
 
-  export const uploadSliderImg = async ( sliderImages) =>
+  export const uploadSliderImg = async (sliderImages, authtoken) =>
   await axios.put(
     `${import.meta.env.REACT_APP_API}/admin/uploadSliderImage`,
     { sliderImages },
-   
+    { headers: { authtoken } }
   );

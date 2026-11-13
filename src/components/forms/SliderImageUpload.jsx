@@ -70,7 +70,7 @@ const FileUpload = ({ values, setValues, setLoading }) => {
   //   }
 
   const handleupload = () => {
-    uploadSliderImg(images).then((res) => {
+    uploadSliderImg(images, user.token).then((res) => {
       if (res.data.ok) {
         toast.success("Address Saved Successully");
       }

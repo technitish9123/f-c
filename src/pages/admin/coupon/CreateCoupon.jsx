@@ -28,7 +28,7 @@ const CreateCoupon = () => {
 
   const loadCoupons = () => {
     setLoading(false);
-    getCoupons().then((res) => {
+    getCoupons(user.token).then((res) => {
       setCoupons(res.data);
       setLoading(false);
     });

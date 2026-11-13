@@ -72,18 +72,15 @@ const ProductListItems = ({ product }) => {
       </li>
       
         
-      <li className="list-group-item">
-      Instock{
-        quantity>0?
-        <span className="label label-default label-pill pull-xs-right">
-        Yes
-      </span>:
-       <span className="label label-default label-pill pull-xs-right">
-       No
-     </span>
-      }
-     
-    </li>
+      {/* Stock is only shown for products that actually track it. */}
+      {typeof quantity === "number" && quantity >= 0 && (
+        <li className="list-group-item">
+          Availability
+          <span className="label label-default label-pill pull-xs-right">
+            {quantity > 0 ? "In stock" : "Made to order"}
+          </span>
+        </li>
+      )}
       
 
 {/* 
