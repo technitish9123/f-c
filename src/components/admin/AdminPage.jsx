@@ -25,8 +25,10 @@ export const shortDate = (d) => (d ? new Date(d).toLocaleDateString("en-IN", { d
 // Download rows as a CSV file (Excel/Tally friendly).
 export const downloadCsv = (filename, rows) => {
   const cell = (v) => {
-    const s = v === null || v === undefined ? "" : String(v);
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    let s = v === null || v === undefined ? "" : String(v);
+    // Text from public forms must never run as a spreadsheet formula.
+    if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const csv = rows.map((r) => r.map(cell).join(",")).join("\r\n");
   const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
