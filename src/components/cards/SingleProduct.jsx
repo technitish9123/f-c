@@ -15,7 +15,7 @@ import RatingModal from "../modal/RatingModal";
 import { showAverage } from "../../functions/rating";
 import lodash from "lodash";
 import { useSelector, useDispatch } from "react-redux";
-import { addItemToWishlist } from "../../functions/user";
+import { useFavourites } from "../../functions/useFavourites";
 import { useLegacyHistory as useHistory } from "../routes/legacy";
 import { toast } from "react-toastify";
 import "./singleProduct.css";
@@ -73,15 +73,8 @@ const SingleProduct = ({ product, rating, onStarClick }) => {
     setTooltip("Added");
   };
 
-  const handleWishlist = () => {
-    addItemToWishlist(_id, user.token).then((res) => {
-      if (res.data.ok) {
-        setTooltip("Added");
-        toast.success("Item Added to Wishlist");
-        history.push("/user/wishlist");
-      }
-    });
-  };
+  const fav = useFavourites();
+  const handleWishlist = () => fav.toggle(product);
 
   return (
     <>
@@ -167,11 +160,9 @@ const SingleProduct = ({ product, rating, onStarClick }) => {
             </button>
           </Tooltip>
           <div className="buybox__row">
-            <Tooltip title={wishlistTooltip}>
-              <button className="buybox__ghost" onClick={handleWishlist}>
-                Add to wishlist
-              </button>
-            </Tooltip>
+            <button className="buybox__ghost" onClick={handleWishlist} aria-pressed={fav.has(_id)}>
+              {fav.has(_id) ? "Saved to favourites" : "Save to favourites"}
+            </button>
             <div className="buybox__ghost buybox__rate">
               <RatingModal>
                 <StarRating

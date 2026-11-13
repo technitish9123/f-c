@@ -34,7 +34,7 @@ const Header = () => {
   const userMenu = {
     items: [
       dashboard && { key: "dash", label: <Link to={dashboard}>Account</Link> },
-      { key: "wish", label: <Link to="/user/wishlist">Wishlist</Link> },
+      { key: "wish", label: <Link to="/user/wishlist">Favourites</Link> },
       { key: "logout", label: "Sign out", onClick: logout },
     ].filter(Boolean),
   };

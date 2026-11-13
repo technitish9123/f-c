@@ -28,7 +28,7 @@ const Footer = () => {
             <ul>
               <li><Link to="/user/history">My Account</Link></li>
               <li><Link to="/user/history">Tracking</Link></li>
-              <li><Link to="/user/wishlist">Wishlist</Link></li>
+              <li><Link to="/user/wishlist">Favourites</Link></li>
               <li><Link to="/cart">Order</Link></li>
             </ul>
           </div>

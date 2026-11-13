@@ -4,6 +4,7 @@ import { Slider } from "antd";
 import { getProductsByCount } from "../functions/product";
 import LoadingCard from "../components/cards/LoadingCard";
 import ProductCard from "../components/cards/ProductCard";
+import finderImg from "../components/assets/images/s8.jpg";
 import {
   FACETS,
   COLOUR_FAMILIES,
@@ -171,10 +172,31 @@ const Shop = () => {
   return (
     <div className="shop">
       <header className="shop__head">
-        <div className="eyebrow">The collection</div>
         <h1>{searchText ? `Results for “${searchText}”` : "Product finder"}</h1>
-        {!searchText && <p>Fabrics and wallcoverings, filtered by use, colour, pattern and composition.</p>}
+        {!searchText && (
+          <p className="shop__tagline">
+            Find the fabric
+            <br />
+            your room has been waiting for
+          </p>
+        )}
       </header>
+
+      {!searchText && (
+        <section className="finder-intro">
+          <figure className="finder-intro__media">
+            <img src={finderImg} alt="A living room dressed in First Impression curtains and upholstery" />
+            <button type="button" className="finder-intro__cta" onClick={() => setSheetOpen(true)}>
+              Start finding
+            </button>
+          </figure>
+          <p className="finder-intro__text">
+            Narrow the collection by where it will live, its colour, its pattern and what it is woven from.
+            Every curtain, upholstery fabric and wallcovering we carry can be seen and felt at our showroom
+            in Kemps Corner.
+          </p>
+        </section>
+      )}
 
       <div className="shop__body">
         <aside className={`shop__aside${sheetOpen ? " is-open" : ""}`} aria-label="Filters">
