@@ -1,254 +1,195 @@
-import React, { useState, useEffect } from "react";
-import {
-  CardNumberElement,
-  CardCvcElement,
-  CardExpiryElement,
-  CardElement,
-  useStripe,
-  useElements,
-} from "@stripe/react-stripe-js";
+import React, { useEffect, useState } from "react";
+import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
 import { createPaymentsIntent } from "../../functions/stripe";
-import { Link, useNavigate } from "react-router-dom";
-import { Card, Button } from "antd";
-import { DollarOutlined, CheckOutlined } from "@ant-design/icons";
-import laptop from "../../images/laptop.png";
 import { createOrder, emptyUserCart } from "../../functions/user";
 
+const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+
+// Stripe's card field, styled to match the site (fonts are passed to <Elements>).
+const CARD_OPTIONS = {
+  hidePostalCode: true,
+  style: {
+    base: {
+      color: "#1c1b19",
+      fontFamily: "Jost, system-ui, sans-serif",
+      fontSize: "16px",
+      fontWeight: "300",
+      letterSpacing: "0.02em",
+      "::placeholder": { color: "#9a958c" },
+    },
+    invalid: { color: "#a33a2b", iconColor: "#a33a2b" },
+  },
+};
+
+const Steps = () => (
+  <ol className="co__steps" aria-label="Checkout steps">
+    <li className="is-done">Bag</li>
+    <li className="is-done">Delivery</li>
+    <li className="is-current" aria-current="step">Payment</li>
+  </ol>
+);
+
 const StripeCheckout = () => {
-  const { user, coupon, pageState, shippingAdd } = useSelector((state) => ({
-    ...state,
-  }));
+  const { user, coupon, pageState, shippingAdd } = useSelector((s) => s);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  const [succeeded, setSucceeded] = useState(false);
-  const [error, setError] = useState(null);
-  const [processing, setProcessing] = useState("");
-  const [disabled, setDisabled] = useState(true);
-  const [clientSecret, setClientSecret] = useState("");
-
-  const [cartTotal, setCartTotal] = useState(0);
-  const [totalAfterDiscount, setTotalAfterDiscount] = useState(0);
-  const [payable, setPayable] = useState(0);
-
   const stripe = useStripe();
   const elements = useElements();
 
-  const cartStyle = {
-    style: {
-      base: {
-        color: "#32325d",
-        fontFamily: "Arial, sans-serif",
-        fontSmoothing: "antialiased",
-        fontSize: "16px",
-        "::placeholder": {
-          color: "#32325d",
-        },
-      },
-      invalid: {
-        color: "#fa755a",
-        iconColor: "#fa755a",
-      },
-    },
-  };
-
-  //       //here we will recieve successful payment response
-  //       //orders on the admin dashboard
-  //         //empty cart from everywhere
-
-  //           //remove cart from local storage
-  //           //remove shipping address from local storage
-
-  //           //remove cart from redux
-  //          // remove shipping address from redux
-  //           //remove cart from database
-
-  //           //coupon set back to false
-
-  const order = {
-    shippingAdd,
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setProcessing(true);
-
-    if (!stripe || !elements) return;
-
-    const payment = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: elements.getElement(CardElement),
-        billing_details: {
-          name: user.name,
-          email: user.email,
-        },
-      },
-    });
-    if (payment.error) {
-      setError(`Payment Failed ${(await payment).error.message}`);
-      <p> payment failed</p>;
-      setProcessing(false);
-    } else {
-      if (payment.paymentIntent.status === "succeeded") {
-        order.paymentInfo = {
-          id: payment.paymentIntent.id,
-          status: payment.paymentIntent.status,
-          stripeResponse: (await payment).paymentIntent,
-        };
-
-        createOrder(order, user.token).then((res) => {
-          //empty cart from everywhere
-
-          if (res.data.ok) {
-            //remove cart from local storage
-            if (typeof window !== undefined) localStorage.removeItem("cart");
-            if (typeof window !== undefined)
-              localStorage.removeItem("shippingAddress");
-            //remove shipping address from local storage
-
-            //remove cart from redux
-            dispatch({
-              type: "ADD_TO_CART",
-              payload: [],
-            });
-            // remove shipping address from redux
-            dispatch({
-              type: "SHIPPING_ADDRESS",
-              payload: null,
-            });
-            //remove cart from database
-            emptyUserCart(user.token);
-
-            //coupon set back to false
-
-            dispatch({
-              type: "COUPON_APPLIED",
-              payload: false,
-            });
-          }
-        });
-      } else {
-        alert.error("There's some issue while processing payment ");
-      }
-
-      setError(null);
-      setProcessing(false);
-      setSucceeded(true);
-    }
-  };
-
-  const handleChange = async (e) => {
-    //show error if the information entered is incorrect and
-    //also disable the button for the pay if error found
-
-    setError(e.error ? e.error.message : "");
-    setDisabled(e.empty);
-  };
-
-  const handleSessionEnd = () => {
-    navigate("/user/history");
-    dispatch({
-      type: "SESSION",
-      payload: false,
-    });
-  };
+  const [intent, setIntent] = useState(null); // { clientSecret, cartTotal, totalAfterDiscount, payable }
+  const [cardReady, setCardReady] = useState(false);
+  const [error, setError] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
 
   useEffect(() => {
+    if (!pageState) return;
     createPaymentsIntent(user.token, coupon, shippingAdd)
-      .then((res) => {
-        setClientSecret(res.data.clientSecret);
-        setCartTotal(res.data.cartTotal);
-        setTotalAfterDiscount(res.data.totalAfterDiscount);
-        setPayable(res.data.payable);
-      })
+      .then((res) => setIntent(res.data))
       // e.g. "Only 2 left of Seiichi J-1158." when stock ran out
       .catch((err) => setError(err.response?.data?.err || "Could not start the payment. Please try again."));
   }, []);
 
-  return (
-    <>
-      {pageState ? (
-        <form id="payment-form" className="stripe-form" onSubmit={handleSubmit}>
-          {!succeeded && (
-            <div>
-              {coupon && totalAfterDiscount !== undefined ? (
-                <p className="alert alert-success">
-                  Coupon Applied. You Save: ₹
-                  {(cartTotal - totalAfterDiscount).toLocaleString("en-IN")}
-                </p>
-              ) : (
-                <p className="alert alert-danger">No Coupon Applied</p>
-              )}
-            </div>
-          )}
+  const clearBag = () => {
+    localStorage.removeItem("cart");
+    localStorage.removeItem("shippingAddress");
+    dispatch({ type: "ADD_TO_CART", payload: [] });
+    dispatch({ type: "COUPON_APPLIED", payload: false });
+    dispatch({ type: "SESSION", payload: false });
+    emptyUserCart(user.token).catch(() => {});
+  };
 
-          <div className="text-center pb-5">
-            <Card
-              cover={
-                <img
-                  src={laptop}
-                  style={{
-                    height: "50px",
-                    objectFit: "cover",
-                    marginBottom: "-50px",
-                  }}
-                />
-              }
-              actions={[
-                <>
-                  <DollarOutlined className="text-info mt-1" />
-                  <br /> Total : ₹ {cartTotal.toLocaleString("en-IN")}
-                </>,
-                <>
-                  <CheckOutlined className="text-info mt-1" />
-                  <br /> payable: ₹ {(payable / 100).toLocaleString("en-IN")}
-                </>,
-              ]}
-            />
+  const pay = async (e) => {
+    e.preventDefault();
+    if (!stripe || !elements || !intent || processing) return;
+    setProcessing(true);
+    setError("");
+
+    const { error: payError, paymentIntent } = await stripe.confirmCardPayment(intent.clientSecret, {
+      payment_method: {
+        card: elements.getElement(CardElement),
+        billing_details: { name: shippingAdd?.name || user.name, email: shippingAdd?.email || user.email },
+      },
+    });
+
+    if (payError) {
+      setError(payError.message);
+      setProcessing(false);
+      return;
+    }
+    if (paymentIntent.status === "succeeded") {
+      // The order is also recorded by Stripe's webhook if this request never arrives.
+      await createOrder(
+        { shippingAdd, paymentInfo: { id: paymentIntent.id, status: paymentIntent.status } },
+        user.token
+      ).catch(() => {});
+      clearBag();
+      setSucceeded(true);
+    }
+    setProcessing(false);
+  };
+
+  if (succeeded) {
+    return (
+      <div className="bag bag--empty pay-done">
+        <div className="eyebrow">Payment received</div>
+        <h1>Thank you{shippingAdd?.name ? `, ${shippingAdd.name.split(" ")[0]}` : ""}</h1>
+        <p>
+          Your order is confirmed. A receipt is on its way to {shippingAdd?.email || user.email}, and our team will
+          call you to arrange delivery.
+        </p>
+        <div className="bag__empty-links">
+          <Link to="/user/history" className="ink-btn">View your order</Link>
+          <Link to="/shop" className="ink-btn ink-btn--ghost">Continue shopping</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!pageState) {
+    return (
+      <div className="bag bag--empty">
+        <div className="eyebrow">Payment</div>
+        <h1>This session has ended</h1>
+        <p>For your security, the payment page can't be reopened. Your bag is still saved.</p>
+        <div className="bag__empty-links">
+          <Link to="/checkout" className="ink-btn">Return to checkout</Link>
+        </div>
+      </div>
+    );
+  }
+
+  const discounted = coupon && intent && intent.totalAfterDiscount && intent.totalAfterDiscount < intent.cartTotal;
+
+  return (
+    <div className="bag co pay">
+      <header className="bag__head">
+        <Link to="/checkout" className="text-link">← Back to delivery</Link>
+        <h1>Payment</h1>
+        <Steps />
+      </header>
+
+      <div className="bag__body">
+        <form className="co__form" onSubmit={pay}>
+          <div className="co__section">
+            <span className="co__num">02</span>
+            <div>
+              <h2 className="co__title">Card details</h2>
+              <p className="co__hint">Visa, Mastercard, RuPay and American Express, processed securely by Stripe.</p>
+            </div>
           </div>
 
-          <CardElement
-            id="card-element"
-            onChange={handleChange}
-            options={cartStyle}
-          />
-          <button
-            className="stripe-button"
-            disabled={processing || disabled || processing}
-          >
-            <span id="button-text">
-              {processing ? <div className="spinner" id="sinner"></div> : "Pay"}
-            </span>
-          </button>
-          <br />
-          {error ? (
-            <div className="card-error text-danger" role="alert">
-              {error}
+          <div className="pay__card">
+            <span className="pay__label">Card number · Expiry · CVC</span>
+            <div className={`pay__field${error ? " is-invalid" : ""}`}>
+              <CardElement
+                options={CARD_OPTIONS}
+                onReady={() => setCardReady(true)}
+                onChange={(e) => setError(e.error ? e.error.message : "")}
+              />
             </div>
-          ) : (
-            " "
-          )}
+            {error && <p className="co-field__err" role="alert">{error}</p>}
 
-          <p className={succeeded ? "result-message" : "result-message hidden"}>
-            Payment Successful{" "}
-            <Button
-              type="link"
-              className={succeeded ? "result-message" : "result-message hidden"}
-              onClick={handleSessionEnd}
-            >
-              Check Your Order status here
-            </Button>
-          </p>
+            <button type="submit" className="ink-btn pay__btn" disabled={!intent || !cardReady || processing}>
+              {processing ? <span className="pay__spinner" aria-label="Processing" /> : intent ? `Pay ${inr(intent.payable / 100)}` : "Preparing payment…"}
+            </button>
+            <p className="pay__secure">
+              <svg width="11" height="13" viewBox="0 0 12 14" aria-hidden="true">
+                <path d="M2 6V4a4 4 0 0 1 8 0v2h1v8H1V6h1Zm1.5 0h5V4a2.5 2.5 0 0 0-5 0v2Z" fill="currentColor" />
+              </svg>
+              Encrypted by Stripe. Please keep this page open until the payment completes.
+            </p>
+          </div>
         </form>
-      ) : (
-        <div className="h-100 w-100">
-          <p className="alert alert-secondary mx-auto my-auto">
-            Session Expired. <Link to="/cart">Try Again.</Link>
-          </p>
-        </div>
-      )}
-    </>
+
+        <aside className="bag__summary co__summary" aria-label="Order summary">
+          <div className="eyebrow">Order summary</div>
+          <dl>
+            <div><dt>Subtotal</dt><dd>{intent ? inr(intent.cartTotal) : "—"}</dd></div>
+            {discounted && <div className="co__discount"><dt>Coupon</dt><dd>−{inr(intent.cartTotal - intent.totalAfterDiscount)}</dd></div>}
+            {intent?.cartTotal >= 20000 && <div><dt>Delivery</dt><dd className="co__free">Free</dd></div>}
+            <div className="bag__total"><dt>To pay</dt><dd>{intent ? inr(intent.payable / 100) : "—"}</dd></div>
+          </dl>
+          <p className="bag__note">Prices include GST.</p>
+
+          {shippingAdd && (
+            <div className="pay__ship">
+              <div className="pay__ship-head">
+                <span className="eyebrow">Delivering to</span>
+                <Link to="/checkout" className="text-link">Edit</Link>
+              </div>
+              <p>
+                <strong>{shippingAdd.name}</strong><br />
+                {shippingAdd.add}<br />
+                {shippingAdd.mobileNum}{shippingAdd.email ? ` · ${shippingAdd.email}` : ""}
+              </p>
+              {shippingAdd.specialMessage && <p className="pay__note">“{shippingAdd.specialMessage}”</p>}
+            </div>
+          )}
+        </aside>
+      </div>
+    </div>
   );
 };
 

@@ -1,292 +1,235 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  getUserCart,
-  emptyUserCart,
-  saveUserAddress,
-  applyDiscount,
-} from "../functions/user";
-import { Button, Card, Input } from "antd";
 import { toast } from "react-toastify";
+import { getUserCart, emptyUserCart, saveUserAddress, applyDiscount } from "../functions/user";
+import { getCatalogue } from "../functions/catalogue";
+
+const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+
+const savedAddress = () => {
+  try {
+    return JSON.parse(localStorage.getItem("shippingAddress")) || {};
+  } catch {
+    return {};
+  }
+};
+
+// Each field: [key, label, input props, check -> error message or ""]
+const FIELDS = [
+  ["name", "Full name", { autoComplete: "name", maxLength: 60 }, (v) => (v.trim().length < 2 ? "Please enter your name." : "")],
+  ["mobileNum", "Mobile number", { type: "tel", inputMode: "numeric", autoComplete: "tel", maxLength: 13 },
+    (v) => (/^(\+?91)?[6-9]\d{9}$/.test(v.replace(/\s/g, "")) ? "" : "Enter a 10-digit mobile number.")],
+  ["email", "Email", { type: "email", autoComplete: "email", maxLength: 100 },
+    (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? "" : "Enter a valid email address.")],
+  ["add", "Delivery address", { as: "textarea", rows: 3, autoComplete: "street-address", maxLength: 400 },
+    (v) => (v.trim().length < 10 ? "Please enter your full address with PIN code." : "")],
+  ["specialMessage", "Delivery note (optional)", { maxLength: 120, placeholder: "Floor, landmark, preferred time…" }, () => ""],
+];
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { user, pageState, shippingAdd } = useSelector((state) => ({
-    ...state,
-  }));
   const dispatch = useDispatch();
+  const user = useSelector((s) => s.user);
 
-  const [products, setProducts] = useState([]);
+  const [lines, setLines] = useState(null); // null while loading
   const [total, setTotal] = useState(0);
-  const [address, setAddress] = useState("");
-  const [addressSaved, setAddressSaved] = useState(false);
+  const [images, setImages] = useState({});
+  const [form, setForm] = useState(() => ({
+    name: user?.name || "", mobileNum: "", email: user?.email || "", add: "", specialMessage: "", ...savedAddress(),
+  }));
+  const [touched, setTouched] = useState({});
   const [coupon, setCoupon] = useState("");
-  const [name, setName] = useState("");
-  const [mobileNum, setMobileNum] = useState("");
-  const [email, setEmail] = useState("");
-  const [speacialMessage, setSpeacialMessage] = useState("");
-  const [discountPrice, setDiscountPrice] = useState("");
-  const [discountErr, setDiscountErr] = useState("");
-  const [show, setShow] = useState(false);
+  const [couponMsg, setCouponMsg] = useState("");
+  const [discounted, setDiscounted] = useState(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    getUserCart(user.token).then((res) => {
-      setProducts(res.data.products);
-      setTotal(res.data.cartTotal);
-    });
+    getUserCart(user.token)
+      .then((res) => {
+        setLines(res.data.products || []);
+        setTotal(res.data.cartTotal || 0);
+      })
+      .catch(() => setLines([]));
+    // Thumbnails come from the (cached) catalogue; the cart only stores ids.
+    getCatalogue().then((all) => setImages(Object.fromEntries(all.map((p) => [p._id, p.images?.[0]?.url]))));
+    // A coupon applied earlier no longer counts once the page reloads.
+    dispatch({ type: "COUPON_APPLIED", payload: false });
   }, []);
 
-  //setting shipping adress in store
-  let shippingaddd = {
-    name: name,
-    mobileNum: mobileNum,
-    email: email,
-    add: address,
-    specialMessage: speacialMessage,
-  };
-  const handleShippingAdd = () => {
-    if (typeof window !== undefined) {
-      localStorage.setItem("shippingAddress", JSON.stringify(shippingaddd));
-    }
-    dispatch({
-      type: "SHIPPING_ADDRESS",
-      payload: shippingaddd,
-    });
-    setAddressSaved(true);
-    toast.success("Address Saved Successully");
-  };
+  const errors = useMemo(() => Object.fromEntries(FIELDS.map(([k, , , check]) => [k, check(form[k] || "")])), [form]);
+  const valid = Object.values(errors).every((e) => !e);
+  const gst = (lines || []).reduce((sum, { product: p, count }) => sum + (p ? ((p.price * (Number(p.gst) || 0)) / 100) * count : 0), 0);
+  const payable = discounted ?? total;
 
-  const handleEmptyCart = () => {
-    if (typeof window !== undefined) {
-      localStorage.removeItem("cart");
-    }
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-    dispatch({
-      type: "ADD_TO_CART",
-      payload: [],
-    });
-
-    emptyUserCart(user.token).then((res) => {
-      toast.success("Cart Empty ! let's Countinue SHOPPING!!!");
-      setProducts([]);
-    });
-
-    setTimeout(() => {
-      navigate("/shop");
-    }, 5000);
-  };
-
-  const applyDiscountCoupon = () => {
-    applyDiscount({ coupon }, user.token).then((res) => {
-      if (res.data.error) {
-        setDiscountErr(res.data.error);
-        toast.error(`"${coupon}" is not Valid`);
-        setShow(false);
+  const applyCoupon = async (e) => {
+    e.preventDefault();
+    if (!coupon.trim()) return;
+    setCouponMsg("");
+    try {
+      const { data } = await applyDiscount({ coupon: coupon.trim() }, user.token);
+      if (data.error) {
+        setDiscounted(null);
+        setCouponMsg(data.error === "Invalid Coupon" ? "This code isn't valid or has expired." : data.error);
+        dispatch({ type: "COUPON_APPLIED", payload: false });
+        return;
       }
-
-      if (res.data.discount) {
-        setDiscountPrice(res.data.discount);
-        toast.success(
-          `A total of ₹ ${(
-            total - res.data.discount
-          ).toLocaleString()}  is applied on the coupon code ==> ${coupon}`
-        );
-        dispatch({
-          type: "COUPON_APPLIED",
-          payload: true,
-        });
-        setShow(true);
-      }
-    });
+      setDiscounted(data.discount);
+      dispatch({ type: "COUPON_APPLIED", payload: true });
+      toast.success(`Coupon ${coupon.trim().toUpperCase()} applied.`);
+    } catch {
+      setCouponMsg("Couldn't check the code. Please try again.");
+    }
   };
 
-  const showApplyCoupon = () => (
-    <div className="row">
-      <div className="col-md-6">
-        <Input
-          type="text"
-          className=""
-          value={coupon}
-          onChange={(e) => setCoupon(e.target.value)}
-          placeholder="Enter Coupon code"
-        />
-        <button
-          className="btn btn-primary btn-raised mt-2"
-          onClick={applyDiscountCoupon}
-        >
-          Apply Coupon
-        </button>
-      </div>
-    </div>
-  );
+  const removeCoupon = () => {
+    setDiscounted(null);
+    setCoupon("");
+    dispatch({ type: "COUPON_APPLIED", payload: false });
+  };
 
-  const handlePaymentSession = () => {
+  const proceed = (e) => {
+    e.preventDefault();
+    setTouched(Object.fromEntries(FIELDS.map(([k]) => [k, true])));
+    if (!valid) {
+      document.querySelector(".co-field.is-invalid input, .co-field.is-invalid textarea")?.focus();
+      return;
+    }
+    const address = { ...form, mobileNum: form.mobileNum.replace(/\s/g, "") };
+    localStorage.setItem("shippingAddress", JSON.stringify(address));
+    dispatch({ type: "SHIPPING_ADDRESS", payload: address });
+    saveUserAddress(user.token, address.add).catch(() => {}); // remembered on the account; not required
+    dispatch({ type: "SESSION", payload: true });
     navigate("/payment");
-    dispatch({
-      type: "SESSION",
-      payload: true,
-    });
   };
+
+  const emptyBag = async () => {
+    if (!window.confirm("Remove everything from your bag?")) return;
+    setBusy(true);
+    localStorage.removeItem("cart");
+    dispatch({ type: "ADD_TO_CART", payload: [] });
+    await emptyUserCart(user.token).catch(() => {});
+    navigate("/shop");
+  };
+
+  if (lines && !lines.length) {
+    return (
+      <div className="bag bag--empty">
+        <div className="eyebrow">Checkout</div>
+        <h1>Your bag is empty</h1>
+        <p>Add a fabric or wallcovering to continue.</p>
+        <div className="bag__empty-links">
+          <Link to="/category/fabrics" className="ink-btn">Fabrics</Link>
+          <Link to="/category/wallpaper" className="ink-btn ink-btn--ghost">Wallpaper</Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container page-checkout">
-    <h4 className="section-title">Checkout</h4>
-    <div className="row">
-      <div className="col-md-6">
-        <div className="checkout-panel">
-        <h4 className="checkout-panel__title">Shipping Address</h4>
-        <div className="p-2 mt-2">
-          <Input
-            type="text"
-            className=""
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Name"
-            maxlength="30"
-            required
-          />
-        </div>
-        <div className="p-2 mt-2">
-          <Input
-            type="Number"
-            className=""
-            value={mobileNum}
-            onChange={(e) => setMobileNum(e.target.value)}
-            placeholder="Mobile Number"
-            required
-          />
-        </div>
-        <div className="p-2 mt-2 mb-2">
-          <Input
-            type="email"
-            className=""
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email Id"
-            required
-          />
-        </div>
-        <hr />
+    <div className="bag co">
+      <header className="bag__head">
+        <Link to="/cart" className="text-link">← Back to bag</Link>
+        <h1>Checkout</h1>
+        <ol className="co__steps" aria-label="Checkout steps">
+          <li className="is-done">Bag</li>
+          <li className="is-current" aria-current="step">Delivery</li>
+          <li>Payment</li>
+        </ol>
+      </header>
 
-        <h6>Special Instructions: </h6>
-        <div className="p-2 mt-2 mb-2">
-          <Input
-            type="text"
-            className=""
-            onChange={(e) => setSpeacialMessage(e.target.value)}
-            placeholder="Your special message if any"
-            required="true"
-            maxlength="50"
-          />
-        </div>
-        <hr />
-
-        <textarea
-          className="form-control checkout-address"
-          rows="4"
-          required
-          placeholder="Enter Your Address"
-          onChange={(e) => setAddress(e.target.value)}
-        />
-        <button
-          className="btn btn-secondary btn-raised mt-2 btn-block"
-          onClick={handleShippingAdd}
-        >
-          Save Delivery Address
-        </button>
-        <hr />
-        <h4>Got Coupon?</h4>
-        <br />
-        {showApplyCoupon()}
-        </div>
-      </div>
-
-      <div className="col-md-6">
-        <Card className="summary-card">
-          <div className="pt-4 pb-4 ">
-            <h4>Order Summary</h4>
-
-            <p className="text-primary h5 mb-5">
-              {products.length} Products in the cart
-            </p>
-            <div className="mb-5">
-              <ul className="list-group">
-                {products.map((p, i) => (
-                  <li className="list-group-item" key={i}>
-                    <p className="cart-details text-secondary">
-                      {p.product.title}
-                    </p>
-                    <span className="label label-default label-pill pull-xs-right cart-details">
-                      ₹{" "}
-                      {p.product.price -
-                        (p.product.price * p.product.gst) / 100}
-                      x {p.count} = ₹{" "}
-                      {(
-                        (p.product.price -
-                          (p.product.price * p.product.gst) / 100) *
-                        p.count
-                      ).toLocaleString("en-IN")}
-                      <br />
-                      <span> +</span>
-                      <br />
-                      <span className=" product_total ">
-                        GST ({p.product.gst}%) : ₹
-                        {((p.product.price * p.product.gst) / 100) * p.count}
-                      </span>
-                      <br /> <br />
-                      Total = {p.product.price * p.count}
-                    </span>
-                    <br />
-                  </li>
-                ))}
-              </ul>
+      <div className="bag__body">
+        <form className="co__form" onSubmit={proceed} noValidate>
+          <div className="co__section">
+            <span className="co__num">01</span>
+            <div>
+              <h2 className="co__title">Delivery details</h2>
+              <p className="co__hint">We'll call this number to arrange delivery and send your receipt to this email.</p>
             </div>
-            <hr />
-            {!show ? (
-              <h5 className="text-right">
-                <span className="text-secondary">Cart Total :</span>
-                <strong> ₹ {total.toLocaleString()} </strong>
-              </h5>
-            ) : (
-              <>
-                <h5 className="text-right">
-                  <span className="text-secondary">Cart Total :</span>
-                  <strong>
-                    <del> ₹ {total.toLocaleString("en-IN")} </del>
-                  </strong>
-                </h5>
-                <h5 className="text-right">
-                  <span className="text-secondary">
-                    Discounted Cart Total :
-                  </span>
-                  <strong> ₹ {discountPrice.toLocaleString("en-IN")}</strong>
-                </h5>
-              </>
-            )}
           </div>
-        </Card>
 
-        <div className="row mt-4">
-          <div className="col-md-6">
-            <button
-              className="btn btn-primary btn-raised btn-block ml-3"
-              disabled={!addressSaved || !products.length}
-              onClick={handlePaymentSession}
-            >
-              Place Order
-            </button>
+          <div className="co__grid">
+            {FIELDS.map(([k, label, { as, ...props }]) => {
+              const err = touched[k] && errors[k];
+              const Tag = as || "input";
+              return (
+                <div key={k} className={`co-field co-field--${k}${err ? " is-invalid" : ""}`}>
+                  <label htmlFor={`co-${k}`}>{label}</label>
+                  <Tag
+                    id={`co-${k}`}
+                    value={form[k] || ""}
+                    onChange={set(k)}
+                    onBlur={() => setTouched((t) => ({ ...t, [k]: true }))}
+                    aria-invalid={!!err}
+                    aria-describedby={err ? `co-${k}-err` : undefined}
+                    {...(Tag === "input" && { type: "text" })}
+                    {...props}
+                  />
+                  {err && <span className="co-field__err" id={`co-${k}-err`}>{err}</span>}
+                </div>
+              );
+            })}
           </div>
-          <div className="col-md-6 pr-4">
-            <button
-              className="btn btn-danger btn-raised btn-block "
-              onClick={handleEmptyCart}
-            >
-              Empty Cart
-            </button>
+
+          <div className="co__section co__section--next">
+            <span className="co__num">02</span>
+            <div>
+              <h2 className="co__title">Payment</h2>
+              <p className="co__hint">Next, pay securely by card with Stripe. Your card details never touch our servers.</p>
+            </div>
           </div>
-        </div>
+        </form>
+
+        <aside className="bag__summary co__summary" aria-label="Order summary">
+          <div className="eyebrow">Order summary</div>
+
+          <ul className="co__lines">
+            {(lines || [null, null]).map((l, i) =>
+              l ? (
+                <li key={i} className="co-line">
+                  <span className="co-line__media">
+                    {images[l.product?._id] && <img src={images[l.product._id]} alt="" loading="lazy" />}
+                    <span className="co-line__qty" aria-label={`Quantity ${l.count}`}>{l.count}</span>
+                  </span>
+                  <span className="co-line__title">{l.product?.title || "Unavailable item"}</span>
+                  <span className="co-line__price">{inr((l.product?.price || 0) * l.count)}</span>
+                </li>
+              ) : (
+                <li key={i} className="co-line co-line--skeleton" aria-hidden="true"><span className="co-line__media" /><span /><span /></li>
+              )
+            )}
+          </ul>
+
+          {discounted === null ? (
+            <form className="co__coupon" onSubmit={applyCoupon}>
+              <label htmlFor="co-coupon" className="co-sr">Coupon code</label>
+              <input id="co-coupon" value={coupon} onChange={(e) => setCoupon(e.target.value)} placeholder="Coupon code" autoComplete="off" />
+              <button type="submit" className="text-link" disabled={!coupon.trim()}>Apply</button>
+              {couponMsg && <span className="co-field__err">{couponMsg}</span>}
+            </form>
+          ) : (
+            <div className="co__coupon co__coupon--on">
+              <span>Coupon <strong>{coupon.trim().toUpperCase()}</strong> applied</span>
+              <button type="button" className="text-link" onClick={removeCoupon}>Remove</button>
+            </div>
+          )}
+
+          <dl>
+            <div><dt>Subtotal</dt><dd>{inr(total)}</dd></div>
+            {discounted !== null && <div className="co__discount"><dt>Discount</dt><dd>−{inr(total - discounted)}</dd></div>}
+            {total >= 20000 && <div><dt>Delivery</dt><dd className="co__free">Free</dd></div>}
+            <div className="bag__total"><dt>Total</dt><dd>{inr(payable)}</dd></div>
+          </dl>
+          <p className="bag__note">Prices include GST{gst ? ` (${inr(gst)})` : ""}.</p>
+
+          <button type="button" className="ink-btn bag__cta" onClick={proceed} disabled={!lines || busy}>
+            Continue to payment
+          </button>
+          <button type="button" className="text-link co__empty" onClick={emptyBag} disabled={busy}>Empty bag</button>
+        </aside>
       </div>
-    </div>
     </div>
   );
 };
