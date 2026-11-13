@@ -39,7 +39,7 @@ const useLeadForm = (initial, validate, build) => {
 export const EnquiryForm = ({ product, onDone }) => {
   const contact = useContact();
   const f = useLeadForm(
-    { ...contact, message: `I'd like to know more about ${product.title}.` },
+    { ...contact, message: `I'd like to know more about ${product.title}${product.variant ? ` in ${product.color}` : ""}.` },
     (v) => ({
       name: v.name.trim() ? "" : "Please enter your name.",
       email: isEmail(v.email) ? "" : "Enter a valid email address.",
@@ -73,9 +73,9 @@ export const NotifyForm = ({ product }) => {
   const f = useLeadForm(
     { email: contact.email },
     (v) => ({ email: isEmail(v.email) ? "" : "Enter a valid email address." }),
-    (v) => ({ type: "restock", email: v.email.trim(), products: [product._id] })
+    (v) => ({ type: "restock", email: v.email.trim(), products: [product._id], ...(product.variant && { message: `Colour: ${product.color}` }) })
   );
-  if (f.done) return <p className="notify__done">We'll email you as soon as {product.title} is back.</p>;
+  if (f.done) return <p className="notify__done">We'll let you know as soon as {product.title}{product.variant ? ` (${product.color})` : ""} is back.</p>;
   return (
     <form className="notify" onSubmit={f.submit} noValidate>
       <p className="notify__lead">Sold out. Leave your email and we'll tell you when it's back.</p>
@@ -97,8 +97,13 @@ export const SampleForm = ({ items, onDone }) => {
       phone: isPhone(v.phone) ? "" : "Enter a 10-digit mobile number.",
       address: v.address.trim().length >= 10 ? "" : "Please enter your full address with PIN code.",
     }),
-    (v) => ({ type: "sample", name: v.name.trim(), email: v.email.trim(), phone: v.phone.trim(), address: v.address.trim(),
-      ...(v.message.trim() && { message: v.message.trim() }), products: items.map((p) => p._id) })
+    (v) => {
+      // Colours asked for are listed in the message (the lead stores products, not colours).
+      const colours = items.filter((p) => p.variant).map((p) => `${p.title}: ${p.color}`);
+      const message = [colours.length ? `Colours: ${colours.join("; ")}` : "", v.message.trim()].filter(Boolean).join("\n").slice(0, 1000);
+      return { type: "sample", name: v.name.trim(), email: v.email.trim(), phone: v.phone.trim(), address: v.address.trim(),
+        ...(message && { message }), products: [...new Set(items.map((p) => p._id))] };
+    }
   );
   useEffect(() => {
     if (f.done) onDone?.();

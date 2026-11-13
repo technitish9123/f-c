@@ -30,13 +30,13 @@ const SideDrawer = () => {
       closable={true}
     >
       {cart.map((p) => (
-        <div className="row" key={p._id}>
+        <div className="row" key={p.variant ? `${p._id}:${p.variant}` : p._id}>
           <div className="col">
             {p.images[0] ? (
               <>
                 <img src={p.images[0].url} className="sidedrawer-image" />
                 <p className="text-center bg-secondary text-light">
-                  {p.title} x {p.count}
+                  {p.title}{p.color && p.variant ? ` (${p.color})` : ""} x {p.count}
                 </p>
               </>
             ) : (

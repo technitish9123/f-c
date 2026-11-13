@@ -247,7 +247,7 @@ const Checkout = () => {
                     {l.product?.images?.[0] && <img src={l.product.images[0].url} alt="" loading="lazy" />}
                     <span className="co-line__qty" aria-label={`Quantity ${l.count}`}>{l.count}</span>
                   </span>
-                  <span className="co-line__title">{l.product?.title || "Unavailable item"}</span>
+                  <span className="co-line__title">{l.product?.title || "Unavailable item"}{l.variant && l.color ? <small> {l.color}</small> : null}</span>
                   <span className="co-line__price">{inr((l.product?.price || 0) * l.count)}</span>
                 </li>
               ) : (

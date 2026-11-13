@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { getProduct } from "../functions/product";
 import { getMore } from "../functions/catalogue";
@@ -9,7 +9,7 @@ import { EnquiryForm, NotifyForm } from "../components/product/LeadForms";
 import Dialog from "../components/ui/Dialog";
 import ProductRail from "../components/home/ProductRail";
 import { toast } from "react-toastify";
-import { addToCart } from "../functions/cart";
+import { addToCart, colourLabel } from "../functions/cart";
 import { useFavourites } from "../functions/useFavourites";
 import ProductCard from "../components/cards/ProductCard";
 import LoadingCard from "../components/cards/LoadingCard";
@@ -79,6 +79,17 @@ const Product = () => {
   const [product, setProduct] = useState(null);
   const [more, setMore] = useState({ colourways: [], related: [], look: [] });
   const [missing, setMissing] = useState(false);
+  const [params, setParams] = useSearchParams();
+
+  // Products with colour options: the chosen colour lives in the URL (?colour=CODE),
+  // so a link or a refresh keeps it. The first colour is shown by default.
+  const variants = (product && product.variants) || [];
+  const chosen = variants.find((v) => v.code === params.get("colour")) || variants[0] || null;
+  const pick = (v) => setParams((prev) => { const next = new URLSearchParams(prev); next.set("colour", v.code); return next; }, { replace: true });
+  const galleryImages = useMemo(() => {
+    const own = (product && product.images) || [];
+    return chosen && chosen.image ? [{ url: chosen.image }, ...own.filter((i) => i.url !== chosen.image)] : own;
+  }, [product, chosen]);
 
   // Start from the card the visitor clicked (if we have it), then load the full record.
   useEffect(() => {
@@ -133,24 +144,26 @@ const Product = () => {
 
   const { title, price, images = [], category, material, application, design, color, brand, width, rollLength,
     style, instruction, description, property, quantity } = product;
-  const out = quantity === 0;
+  const out = chosen ? chosen.quantity === 0 : quantity === 0;
+  // What enquiries, samples and alerts refer to: the product in the chosen colour.
+  const shown = chosen ? { ...product, color: colourLabel(chosen), sku: chosen.code, variant: chosen.code, images: galleryImages } : product;
   // Imported articles can be "price on request" until a price list is loaded.
   const onRequest = product.priceOnRequest || !(price > 0);
   const quality = [category && category.name, style, design].filter(Boolean).join(", ");
   const link = `https://firstimp.in/product/${product.slug}`;
-  const inBasket = sampleBasket.some((p) => p._id === String(product._id));
+  const inBasket = sampleBasket.some((p) => p._id === String(product._id) && (p.variant || null) === (chosen ? chosen.code : null));
   const addSample = () => {
-    if (!samples.add(product)) {
+    if (!samples.add(shown)) {
       toast.info(`You can request up to ${SAMPLE_LIMIT} samples at a time.`);
       return;
     }
-    toast.success(`Sample of ${title} added. Request it from your sample list.`);
+    toast.success(`Sample of ${title}${chosen ? ` (${colourLabel(chosen)})` : ""} added. Request it from your sample list.`);
   };
 
   const spec = [
     ["Article", title],
     ["Brand", brand],
-    ["Colour", color],
+    ["Colour", chosen ? colourLabel(chosen) : color],
     ["Composition", material],
     ["Pattern", design],
     ["Weave / finish", style],
@@ -178,7 +191,7 @@ const Product = () => {
       </nav>
 
       <div className="pdp__main">
-        <Gallery images={images} title={title} />
+        <Gallery images={galleryImages} title={chosen ? `${title}, ${chosen.colour || chosen.code}` : title} />
 
         <section className="pdp__info">
           <div className="pdp__title-row">
@@ -197,9 +210,42 @@ const Product = () => {
           </div>
           {(quality || material) && <p className="pdp__quality">{[quality, material].filter(Boolean).join("; ")}</p>}
           <div className="pdp__price">{onRequest ? "Price on request" : inr(price)}</div>
-          {product.sku && <div className="pdp__sku">Article {product.sku}</div>}
+          {chosen ? (
+            <div className="pdp__sku">Article {chosen.code}</div>
+          ) : (
+            product.sku && <div className="pdp__sku">Article {product.sku}</div>
+          )}
 
-          {colourways.length > 1 && (
+          {variants.length > 0 && (
+            <div className="pdp__colourways">
+              <div className="eyebrow">
+                {variants.length} {variants.length === 1 ? "colour" : "colours"} · {chosen.colour || chosen.code}
+              </div>
+              <div className="pdp__swatches" role="radiogroup" aria-label="Colour">
+                {(allColours ? variants : variants.slice(0, 24)).map((v) => (
+                  <button
+                    key={v.code}
+                    type="button"
+                    role="radio"
+                    aria-checked={v === chosen}
+                    className={v === chosen ? "is-on" : ""}
+                    title={colourLabel(v)}
+                    onClick={() => pick(v)}
+                  >
+                    <img src={v.image || (images[0] && images[0].url) || fallbackImg} alt={colourLabel(v)} loading="lazy" />
+                    {v.quantity === 0 && <span className="pdp__swatch-out" aria-hidden="true" />}
+                  </button>
+                ))}
+              </div>
+              {variants.length > 24 && (
+                <button type="button" className="text-link pdp__all-colours" onClick={() => setAllColours((v) => !v)}>
+                  {allColours ? "Show fewer" : `Show all ${variants.length} colours`}
+                </button>
+              )}
+            </div>
+          )}
+
+          {!variants.length && colourways.length > 1 && (
             <div className="pdp__colourways">
               <div className="eyebrow">
                 {colourways.length} colourways{color ? ` · ${color}` : ""}
@@ -231,9 +277,9 @@ const Product = () => {
                 Ask for a price
               </button>
             ) : out ? (
-              <NotifyForm product={product} />
+              <NotifyForm product={shown} />
             ) : (
-              <button type="button" className="buybox__cta" onClick={() => addToCart(dispatch, product)}>
+              <button type="button" className="buybox__cta" onClick={() => addToCart(dispatch, product, undefined, chosen)}>
                 Add to bag
               </button>
             )}
@@ -241,8 +287,8 @@ const Product = () => {
               <QuantityCalculator
                 product={product}
                 onAdd={(count) => {
-                  addToCart(dispatch, product, count);
-                  toast.success(`${count} ${category?.slug === "wallpaper" ? "rolls" : "m"} of ${title} in your bag.`);
+                  addToCart(dispatch, product, count, chosen);
+                  toast.success(`${count} ${category?.slug === "wallpaper" ? "rolls" : "m"} of ${title}${chosen ? ` (${chosen.colour || chosen.code})` : ""} in your bag.`);
                 }}
               />
             )}
@@ -261,14 +307,14 @@ const Product = () => {
               </button>
             </div>
             <p className="pdp__help">
-              <a href={whatsapp(`Hello, I'm interested in ${title}: ${link}`)} target="_blank" rel="noopener noreferrer" className="pdp__wa">
+              <a href={whatsapp(`Hello, I'm interested in ${title}${chosen ? ` (${colourLabel(chosen)})` : ""}: ${link}${chosen ? `?colour=${encodeURIComponent(chosen.code)}` : ""}`)} target="_blank" rel="noopener noreferrer" className="pdp__wa">
                 WhatsApp us
               </a>{" "}
               · call <a href="tel:+917777045811">7777045811</a> · <Link to="/contact#visit">book a showroom visit</Link>
             </p>
           </div>
           <Dialog open={enquire} onClose={() => setEnquire(false)} title={`Enquire about ${title}`}>
-            <EnquiryForm product={product} onDone={() => setEnquire(false)} />
+            <EnquiryForm product={shown} onDone={() => setEnquire(false)} />
           </Dialog>
 
           <details className="pdp__data" open>

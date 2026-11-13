@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { userCart } from "../functions/user";
-import { readCart, writeCart } from "../functions/cart";
+import { readCart, writeCart, lineKey } from "../functions/cart";
 import laptop from "../images/laptop.png";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
@@ -62,11 +62,11 @@ const Cart = () => {
 
   const setQty = (id, value) => {
     const n = Math.min(MAX_QTY, Math.max(1, Math.floor(Number(value) || 1)));
-    writeCart(dispatch, readCart().map((p) => (p._id === id ? { ...p, count: n } : p)));
+    writeCart(dispatch, readCart().map((p) => (lineKey(p) === id ? { ...p, count: n } : p)));
   };
 
   const remove = (id, title) => {
-    writeCart(dispatch, readCart().filter((p) => p._id !== id));
+    writeCart(dispatch, readCart().filter((p) => lineKey(p) !== id));
     toast(`${title} removed from your bag`);
   };
 
@@ -110,10 +110,10 @@ const Cart = () => {
         <ul className="bag__lines">
           {cart.map((item) => (
             <BagLine
-              key={item._id}
+              key={lineKey(item)}
               item={item}
-              onQty={(v) => setQty(item._id, v)}
-              onRemove={() => remove(item._id, item.title)}
+              onQty={(v) => setQty(lineKey(item), v)}
+              onRemove={() => remove(lineKey(item), item.title)}
             />
           ))}
         </ul>

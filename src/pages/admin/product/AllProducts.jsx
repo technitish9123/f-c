@@ -70,7 +70,7 @@ const AllProducts = () => {
                 {data.items.map((p) => (
                   <tr key={p._id}>
                     <td className="adm-thumb">{p.images?.[0] && <img src={p.images[0].url} alt="" loading="lazy" />}</td>
-                    <td><Link to={`/product/${p.slug}`}><strong>{p.title}</strong></Link>{p.sku && <small>{p.sku}</small>}</td>
+                    <td><Link to={`/product/${p.slug}`}><strong>{p.title}</strong></Link>{p.sku && <small>{p.sku}</small>}{p.colours > 0 && <small>{p.colours} colours</small>}</td>
                     <td>{p.category?.name || "—"}</td>
                     <td>{p.priceOnRequest || !(p.price > 0) ? <span className="adm-badge adm-badge--sample">On request</span> : inr(p.price)}</td>
                     <td>{p.quantity === 0 ? <span className="adm-badge adm-badge--red">Sold out</span> : p.quantity ?? "—"}</td>

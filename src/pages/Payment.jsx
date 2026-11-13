@@ -139,7 +139,7 @@ const Payment = () => {
             <ul className="pay__lines">
               {(cart?.products || []).map((l, i) => (
                 <li key={i}>
-                  <span>{l.product?.title || "Item"} <em>× {l.count}</em></span>
+                  <span>{l.product?.title || "Item"}{l.variant && l.color ? ` (${l.color})` : ""} <em>× {l.count}</em></span>
                   <span>{inr((l.product?.price || 0) * l.count)}</span>
                 </li>
               ))}

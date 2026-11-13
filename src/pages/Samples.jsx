@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { samples, SAMPLE_LIMIT } from "../functions/localList";
+import { samples, SAMPLE_LIMIT, itemKey } from "../functions/localList";
 import { SampleForm } from "../components/product/LeadForms";
 
 // The sample basket: up to five free swatches, sent by post.
@@ -31,7 +31,7 @@ const Samples = () => {
           <div>
             <ul className="bag__lines">
               {items.map((p) => (
-                <li key={p._id} className="bag-line">
+                <li key={itemKey(p)} className="bag-line">
                   <Link to={`/product/${p.slug}`} className="bag-line__media">
                     {p.images?.[0] && <img src={p.images[0].url} alt="" loading="lazy" />}
                   </Link>
@@ -40,7 +40,7 @@ const Samples = () => {
                     <div className="bag-line__meta">{[p.category?.name, p.color].filter(Boolean).join(" · ")}</div>
                     {!sent && (
                       <div className="bag-line__controls">
-                        <button type="button" className="text-link" onClick={() => samples.remove(p._id)}>Remove</button>
+                        <button type="button" className="text-link" onClick={() => samples.remove(itemKey(p))}>Remove</button>
                       </div>
                     )}
                   </div>

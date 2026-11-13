@@ -1158,3 +1158,14 @@ a.adm-kpi:hover { color: var(--ink); outline: 1px solid var(--line); }
 .adm-row-actions .text-link + .text-link { margin-left: 14px; }
 .adm-pager { display: flex; justify-content: center; align-items: center; gap: 24px; margin: 20px 0; font-size: 13px; }
 .adm__actions .ink-btn { display: inline-block; }
+
+/* Colour options (one product per article) */
+.pdp__swatches button { position: relative; aspect-ratio: 1; padding: 0; border: 0; background: var(--line, #e6e2da); border-radius: 50% !important; overflow: hidden; cursor: pointer; outline: 1px solid transparent; outline-offset: 3px; transition: outline-color .2s, transform .3s var(--ease); }
+.pdp__swatches button:hover { transform: scale(1.06); }
+.pdp__swatches button.is-on { outline-color: var(--ink); }
+.pdp__swatches button:focus-visible { outline: 2px solid var(--ink); }
+.pdp__swatch-out { position: absolute; inset: 0; background: linear-gradient(to top right, transparent calc(50% - 1px), rgba(255,255,255,.9) 50%, transparent calc(50% + 1px)); }
+.pcard__colours { font-size: 12px; color: var(--muted, #6b6862); margin: -2px 0 8px; }
+.co-line__title small { display: block; font-size: 12px; opacity: .7; }
+.adm-inline-field { display: block; margin: 0 0 16px; font-size: 14px; }
+.adm-inline-field input { width: 120px; margin-left: 6px; padding: 4px 8px; border: 1px solid var(--line, #ddd); }

@@ -65,6 +65,8 @@ const ProductImport = () => {
   const [fileName, setFileName] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState(null);
+  // Fabrics with no price in the file are sold at this flat price (empty = price on request).
+  const [fabricPrice, setFabricPrice] = useState("10000");
 
   useEffect(() => {
     getCategories().then((r) => setCategories(r.data)).catch(() => {});
@@ -84,13 +86,20 @@ const ProductImport = () => {
     });
   };
 
+  const fabricId = categories.find((c) => c.slug === "fabrics")?._id;
+  const flat = Number(fabricPrice);
+  const priceOf = (p) => (p.price !== undefined ? p.price : p.category === fabricId && flat > 0 ? flat : undefined);
   const valid = (rows || []).filter((r) => !r.problems.length);
+  const articles = new Set(valid.map((r, i) => (r.p.articleCode ? `a:${r.p.articleCode.toLowerCase()}` : `r:${i}`))).size;
   const run = async () => {
     setBusy(true);
     try {
-      const { data } = await importProducts(user.token, valid.map((r) => r.p));
+      const { data } = await importProducts(user.token, valid.map((r) => {
+        const price = priceOf(r.p);
+        return price === undefined ? r.p : { ...r.p, price };
+      }));
       setResult(data);
-      toast.success(`${data.created} added, ${data.updated} updated.`);
+      toast.success(`${data.products} product${data.products === 1 ? "" : "s"} saved (${data.created} rows added, ${data.updated} updated).`);
     } catch (err) {
       toast.error(err.response?.data?.err || "Import failed.");
     } finally {
@@ -98,22 +107,27 @@ const ProductImport = () => {
     }
   };
 
-  const template = () => downloadCsv("product-import-template.csv", [
-    COLUMNS,
-    ["CH1249/069", "CH1249", "Hot Madison Reboot 069", "Woven, tabby weave upholstery fabric", "", "5", categories[0]?.name || "Fabrics",
-      "", "Beige", "Chivasso", "63% cotton, 37% linen", "Plain", "Tabby weave", "Curtains, Upholstery", "Martindale 55,000",
-      "Dry clean only", "140", "", "", "0", "", "Yes", "5801", "https://assets.jab.de/preview/fabrics/article/CH12/CH1249-069-article-ratio1.jpg"],
-  ]);
+  const example = (code, colour) => [`CH1249/${code}`, "CH1249", "Hot Madison Reboot", "Woven, tabby weave upholstery fabric", "", "5", "Fabrics",
+    "", colour, "Chivasso", "63% cotton, 37% linen", "Plain", "Tabby weave", "Curtains, Upholstery", "Martindale 55,000",
+    "Dry clean only", "140", "", "", "0", "", "Yes", "5801", `https://assets.jab.de/preview/fabrics/article/CH12/CH1249-${code}-article-ratio1.jpg`];
+  const template = () => downloadCsv("product-import-template.csv", [COLUMNS, example("069", "Beige"), example("420", "Navy")]);
 
   return (
     <AdminPage title="Import products" actions={<button type="button" className="ink-btn ink-btn--ghost" onClick={template}>Download template</button>}>
       <p className="co__hint adm-intro">
-        Upload a CSV (from Excel: File › Save as › CSV). Required columns: title, description, gst. Leave price empty for
-        “price on request” (a later file with prices fills them in). Rows with a supplier code (sku, e.g. JAB “CH1249/069”)
-        update that product if it exists, so the same file can be re-imported safely; articleCode groups colourways.
-        Category is matched by name ({categories.map((c) => c.name).join(", ") || "…"}). Images: one or more links separated
-        by “|”. Up to 500 rows per file. Nothing is saved until you press Import.
+        Upload a CSV (from Excel: File › Save as › CSV). Required columns: title, description, gst. <strong>One row per
+        colour:</strong> rows with the same articleCode (e.g. JAB “CH1249”) become one product, and each row is a colour
+        customers pick on the product page: sku is the colour's code (“CH1249/069”), color its name, the first image its
+        picture and quantity its stock. Title, description, price and the other details come from the article's first row.
+        Re-importing updates the same products, so a file can be loaded again safely. Leave price empty for “price on
+        request”. Category is matched by name ({categories.map((c) => c.name).join(", ") || "…"}). Images: links separated by
+        “|”. Up to 500 rows per file. Nothing is saved until you press Import.
       </p>
+      <label className="adm-inline-field">
+        Fabric price when the file has none (₹){" "}
+        <input type="number" min="0" step="1" value={fabricPrice} onChange={(e) => setFabricPrice(e.target.value)} disabled={!!result} />
+        <small> Empty means “price on request”.</small>
+      </label>
       <label className="adm-drop">
         <input type="file" accept=".csv,text/csv" onChange={(e) => read(e.target.files[0])} />
         <span>{fileName || "Choose a CSV file"}</span>
@@ -121,10 +135,10 @@ const ProductImport = () => {
 
       {rows && (
         <>
-          <p className="co__hint">{rows.length} rows · <strong>{valid.length} ready</strong>{rows.length > valid.length && ` · ${rows.length - valid.length} with problems (skipped)`}</p>
+          <p className="co__hint">{rows.length} rows · <strong>{valid.length} ready</strong> ({articles} product{articles === 1 ? "" : "s"}){rows.length > valid.length && ` · ${rows.length - valid.length} with problems (skipped)`}</p>
           <div className="adm-table-wrap">
             <table className="adm-table">
-              <thead><tr><th>#</th><th>Code</th><th>Title</th><th>Category</th><th>Price</th><th>Stock</th><th>Check</th></tr></thead>
+              <thead><tr><th>#</th><th>Article</th><th>Colour code</th><th>Title</th><th>Colour</th><th>Category</th><th>Price</th><th>Stock</th><th>Check</th></tr></thead>
               <tbody>
                 {rows.map(({ p, problems }, i) => {
                   // Results come back in the order the valid rows were sent.
@@ -132,10 +146,12 @@ const ProductImport = () => {
                   return (
                     <tr key={i} className={problems.length ? "is-bad" : ""}>
                       <td>{i + 2}</td>
+                      <td>{p.articleCode || "—"}</td>
                       <td>{p.sku || "—"}</td>
                       <td>{p.title || "—"}</td>
+                      <td>{p.color || "—"}</td>
                       <td>{categories.find((c) => c._id === p.category)?.name || "—"}</td>
-                      <td>{p.price !== undefined ? inr(p.price) : "On request"}</td>
+                      <td>{priceOf(p) !== undefined ? inr(priceOf(p)) : "On request"}</td>
                       <td>{p.quantity ?? "—"}</td>
                       <td>{problems.length ? <span className="co-field__err">{problems.join("; ")}</span> : done ? (done.ok ? <Link to={`/product/${done.slug}`}>{done.updated ? "Updated ✓" : "Added ✓"}</Link> : <span className="co-field__err">{done.err}</span>) : "OK"}</td>
                     </tr>
@@ -151,7 +167,7 @@ const ProductImport = () => {
           )}
           {!result && (
             <button type="button" className="ink-btn" onClick={run} disabled={busy || !valid.length}>
-              {busy ? "Importing…" : `Import ${valid.length} product${valid.length === 1 ? "" : "s"}`}
+              {busy ? "Importing…" : `Import ${articles} product${articles === 1 ? "" : "s"} (${valid.length} rows)`}
             </button>
           )}
         </>

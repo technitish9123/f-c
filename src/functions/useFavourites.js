@@ -23,6 +23,7 @@ const snapshot = (p) => ({
   material: p.material,
   quantity: p.quantity,
   priceOnRequest: p.priceOnRequest,
+  colours: p.colours || (p.variants && p.variants.length) || undefined,
 });
 
 const readLocal = () => {

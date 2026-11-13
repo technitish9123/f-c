@@ -48,7 +48,9 @@ const FavouriteRow = ({ item, onRemove }) => {
           </button>
           <Link to={`/product/${item.slug}`}>Details</Link>
           <a href={enquiry}>Enquire</a>
-          {!onRequest && (
+          {!onRequest && (item.colours || item.variants?.length) ? (
+            <Link to={`/product/${item.slug}`} className="is-primary">Choose colour</Link>
+          ) : !onRequest && (
             <button type="button" className="is-primary" onClick={() => addToCart(dispatch, item)} disabled={out}>
               {out ? "Sold out" : "Add to bag"}
             </button>

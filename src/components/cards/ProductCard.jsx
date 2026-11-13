@@ -14,6 +14,7 @@ const ProductCard = ({ product }) => {
   const out = product.quantity === 0;
   const onRequest = product.priceOnRequest || !(price > 0);
   const saved = fav.has(_id);
+  const colours = product.colours || (product.variants && product.variants.length) || 0;
 
   return (
     <div className="pcard">
@@ -40,8 +41,11 @@ const ProductCard = ({ product }) => {
           </Link>
           <span className="pcard__price">{onRequest ? "On request" : `₹${Number(price).toLocaleString("en-IN")}`}</span>
         </div>
+        {colours > 1 && <div className="pcard__colours">{colours} colours</div>}
         {onRequest ? (
           <Link to={`/product/${slug}`} className="pcard__btn">View &amp; enquire</Link>
+        ) : colours ? (
+          <Link to={`/product/${slug}`} className="pcard__btn">Choose colour</Link>
         ) : (
           <button className="pcard__btn" disabled={out} onClick={() => addToCart(dispatch, product)}>
             {out ? "Sold out" : "Add to bag"}
