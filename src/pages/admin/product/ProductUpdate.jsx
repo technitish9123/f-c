@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import {
   createProduct,
-  getProducts,
   getProduct,
   updateProduct,
 } from "../../../functions/product";

@@ -106,14 +106,6 @@ hr { border: 0; border-top: 1px solid var(--line); }
 .ant-tabs-ink-bar { background: var(--ink) !important; }
 .ant-tabs-card .ant-tabs-tab { background: transparent !important; border: 0 !important; }
 .ant-badge-count { background: var(--ink); box-shadow: none; font-size: 10px; }
-.ant-pagination { display: flex; justify-content: center; }
-.ant-pagination-item, .ant-pagination-prev .ant-pagination-item-link, .ant-pagination-next .ant-pagination-item-link {
-  background: transparent !important; border: 0 !important; font-family: var(--serif); font-size: 17px;
-}
-.ant-pagination-item a { color: var(--stone); }
-.ant-pagination-item-active a, .ant-pagination-item:hover a { color: var(--ink) !important; }
-.ant-pagination-item-active { border-bottom: 1px solid var(--ink) !important; }
-.ant-pagination-options { display: none; }
 .ant-spin-dot-item { background: var(--ink); }
 .list-group-item { background: transparent; border-color: var(--line); }
 
@@ -930,3 +922,20 @@ body.menu-open { overflow: hidden; }
 @media (max-width: 767px) { .hero { height: 78vh; } }
 .site-header__icons a, .site-header__icons button { white-space: nowrap; }
 @media (max-width: 420px) { .site-header__fav { display: none !important; } .site-header__logo span { font-size: 14px; letter-spacing: .12em; } .site-header__icons { gap: 14px; } }
+
+/* ---------- Product rail (home sections) ---------- */
+.rail { position: relative; }
+.rail__track { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 3 * 24px) / 4); gap: 24px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; padding-bottom: 4px; outline: none; }
+.rail__track::-webkit-scrollbar { display: none; }
+.rail__item { scroll-snap-align: start; min-width: 0; }
+.rail__controls { display: flex; justify-content: flex-end; gap: 8px; margin-top: 28px; }
+.rail__controls button { width: 46px; height: 46px; border: 1px solid var(--ink); background: transparent; color: var(--ink);
+  font-size: 22px; line-height: 1; cursor: pointer; transition: background .3s var(--ease), color .3s var(--ease), opacity .3s; }
+.rail__controls button:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+.rail__controls button:disabled { opacity: .25; cursor: default; }
+@media (max-width: 1100px) { .rail__track { grid-auto-columns: calc((100% - 2 * 20px) / 3); gap: 20px; } }
+@media (max-width: 767px) {
+  .rail__track { grid-auto-columns: 70%; gap: 14px; margin-right: calc(-1 * var(--gutter)); padding-right: var(--gutter); }
+  .rail__controls { display: none; }
+}

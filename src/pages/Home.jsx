@@ -2,8 +2,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import CategoryList from "../components/category/CategoryList";
-import BestSellers from "../components/home/BestSellers";
-import NewArrivals from "../components/home/NewArrivals";
+import ProductRail from "../components/home/ProductRail";
 import Background from "../components/homeComponents/background";
 import lookA from "../components/assets/images/s2.jpg";
 import lookB from "../components/assets/images/s4.jpg";
@@ -117,7 +116,7 @@ const Home = () => {
 
         <section className="home-section">
           <SectionHead index="01" label="Just arrived" title="New Arrivals" to="/shop" />
-          <NewArrivals />
+          <ProductRail sort="newest" label="New arrivals" />
         </section>
 
         <section className="home-section">
@@ -127,7 +126,7 @@ const Home = () => {
 
         <section className="home-section">
           <SectionHead index="03" label="Most loved" title="Best Sellers" to="/shop" />
-          <BestSellers />
+          <ProductRail sort="bestselling" label="Best sellers" />
         </section>
       </div>
 
