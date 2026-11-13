@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useLocation, useParams } from "react-router-dom";
 import { Slider } from "antd";
-import { getProductsByCount } from "../functions/product";
+import { getCatalogue } from "../functions/catalogue";
 import LoadingCard from "../components/cards/LoadingCard";
 import ProductCard from "../components/cards/ProductCard";
 import finderImg from "../components/assets/images/s8.jpg";
@@ -21,8 +22,12 @@ const swatchHex = Object.fromEntries(COLOUR_FAMILIES.map((f) => [f.key, f.hex]))
 const inr = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
 const emptySelection = () => Object.fromEntries(FACETS.map((f) => [f.key, []]));
 
+// Also serves /category/:slug and /sub/:slug, scoped to that category.
 const Shop = () => {
   const dispatch = useDispatch();
+  const { slug } = useParams();
+  const { pathname } = useLocation();
+  const scope = slug ? (pathname.startsWith("/sub/") ? "sub" : "category") : null;
   const searchText = useSelector((state) => state.search.text);
 
   const [items, setItems] = useState([]); // indexed products
@@ -33,11 +38,11 @@ const Shop = () => {
   const [visible, setVisible] = useState(PAGE);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  // Load the whole catalogue once; search, filters and sorting run client-side.
+  // The catalogue is loaded once and shared; search, filters and sorting run client-side.
   useEffect(() => {
     let cancelled = false;
-    getProductsByCount(1000)
-      .then((res) => !cancelled && setItems(indexProducts(res.data || [])))
+    getCatalogue()
+      .then((list) => !cancelled && setItems(indexProducts(list)))
       .catch(() => !cancelled && setItems([]))
       .finally(() => !cancelled && setLoading(false));
     return () => {
@@ -45,7 +50,28 @@ const Shop = () => {
     };
   }, []);
 
-  const searched = useMemo(() => searchItems(items, searchText), [items, searchText]);
+  // Moving between categories starts fresh.
+  useEffect(() => {
+    setSelected(emptySelection());
+    setPrice(null);
+    window.scrollTo(0, 0);
+  }, [slug]);
+
+  const scoped = useMemo(() => {
+    if (!scope) return items;
+    return items.filter(({ product: p }) =>
+      scope === "category"
+        ? p.category && p.category.slug === slug
+        : (p.subs || []).some((s) => s && s.slug === slug)
+    );
+  }, [items, scope, slug]);
+  const scopeName = useMemo(() => {
+    const p = scoped[0] && scoped[0].product;
+    if (!p) return slug ? slug.replace(/-/g, " ") : "";
+    return scope === "category" ? p.category.name : ((p.subs || []).find((s) => s.slug === slug) || {}).name || slug;
+  }, [scoped, scope, slug]);
+
+  const searched = useMemo(() => searchItems(scoped, searchText), [scoped, searchText]);
 
   // Reset paging whenever the result set changes.
   useEffect(() => setVisible(PAGE), [selected, price, sort, searchText]);
@@ -62,10 +88,15 @@ const Shop = () => {
   }, [sheetOpen]);
 
   const priceBounds = useMemo(() => {
-    if (!items.length) return [0, 0];
-    const prices = items.map((i) => i.price);
-    return [Math.min(...prices), Math.max(...prices)];
-  }, [items]);
+    if (!scoped.length) return [0, 0];
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const { price: p } of scoped) {
+      if (p < lo) lo = p;
+      if (p > hi) hi = p;
+    }
+    return [lo, hi];
+  }, [scoped]);
 
   const results = useMemo(
     () => sortItems(filterItems(searched, selected, price), sort),
@@ -101,6 +132,7 @@ const Shop = () => {
     <div className="facets">
       {FACETS.map((f) => {
         const options = counts[f.key] || [];
+        if (scope && f.key === "type") return null; // already scoped to one type
         if (options.length < 2 && selected[f.key].length === 0) return null; // nothing to choose
         return (
           <details className="filter" key={f.key} open={f.key !== "composition"}>
@@ -172,8 +204,8 @@ const Shop = () => {
   return (
     <div className="shop">
       <header className="shop__head">
-        <h1>{searchText ? `Results for “${searchText}”` : "Product finder"}</h1>
-        {!searchText && (
+        <h1>{searchText ? `Results for “${searchText}”` : scope ? scopeName : "Product finder"}</h1>
+        {!searchText && !scope && (
           <p className="shop__tagline">
             Find the fabric
             <br />
@@ -182,7 +214,7 @@ const Shop = () => {
         )}
       </header>
 
-      {!searchText && (
+      {!searchText && !scope && (
         <section className="finder-intro">
           <figure className="finder-intro__media">
             <img src={finderImg} alt="A living room dressed in First Impression curtains and upholstery" />

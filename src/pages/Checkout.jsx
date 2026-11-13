@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
   getUserCart,
@@ -9,7 +10,8 @@ import {
 import { Button, Card, Input } from "antd";
 import { toast } from "react-toastify";
 
-const Checkout = ({ history }) => {
+const Checkout = () => {
+  const navigate = useNavigate();
   const { user, pageState, shippingAdd } = useSelector((state) => ({
     ...state,
   }));
@@ -73,7 +75,7 @@ const Checkout = ({ history }) => {
     });
 
     setTimeout(() => {
-      history.push("/shop");
+      navigate("/shop");
     }, 5000);
   };
 
@@ -132,7 +134,7 @@ const Checkout = ({ history }) => {
   );
 
   const handlePaymentSession = () => {
-    history.push("/payment");
+    navigate("/payment");
     dispatch({
       type: "SESSION",
       payload: true,

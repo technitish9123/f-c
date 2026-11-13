@@ -3,7 +3,6 @@ import { CheckCircleOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import Invoice from "../../components/order/Invoice";
 import { Col, Select, Row } from "antd";
-import moment from "moment";
 
 const { Option } = Select;
 
@@ -14,6 +13,13 @@ const statusOptions = [
   "Delivered",
   "Cancelled",
 ];
+
+// Payment time from Stripe when present, else when the order was saved.
+const orderDate = (order) => {
+  const created = order.paymentIntent?.paymentInfo?.stripeResponse?.created;
+  const d = created ? new Date(created * 1000) : new Date(order.createdAt);
+  return isNaN(d) ? "—" : d.toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" });
+};
 
 const Orders = ({ orders, handleStatusChange }) => {
   const [option, setOptions] = useState("Not Processed");
@@ -36,15 +42,15 @@ const Orders = ({ orders, handleStatusChange }) => {
         {order.products.map((p, i) => (
           <tr key={i}>
             <td>
-              <strong>{p.product.title}</strong>
+              <strong>{p.product?.title ?? "Item no longer available"}</strong>
             </td>
-            <td>{p.product.price}</td>
-            <td>{p.product.brand}</td>
-            <td>{p.product.color}</td>
+            <td>{p.product?.price}</td>
+            <td>{p.product?.brand}</td>
+            <td>{p.product?.color}</td>
             <td>{p.count}</td>
 
             <td>
-              {p.product.shipping === "Yes" ? (
+              {p.product?.shipping === "Yes" ? (
                 <CheckCircleOutlined style={{ color: "green" }} />
               ) : (
                 <CloseCircleOutlined className="text-danger" />
@@ -76,26 +82,26 @@ const Orders = ({ orders, handleStatusChange }) => {
             <Col lg={12}>
               <div className=" p-3 ">
                 <p style={{ fontSize: "25px" }}>Shipping Info:</p>
-                <div>Name: {order.paymentIntent.shippingAdd.name}</div> <br />
+                <div>Name: {order.paymentIntent?.shippingAdd?.name}</div> <br />
                 <div>
-                  Mobile Number: {order.paymentIntent.shippingAdd.mobileNum}
+                  Mobile Number: {order.paymentIntent?.shippingAdd?.mobileNum}
                 </div>{" "}
                 <br />
-                <div>Email: {order.paymentIntent.shippingAdd.email}</div>
+                <div>Email: {order.paymentIntent?.shippingAdd?.email}</div>
                 <br />
                 <div>
-                  Shipping Address: {order.paymentIntent.shippingAdd.add}
+                  Shipping Address: {order.paymentIntent?.shippingAdd?.add}
                 </div>{" "}
                 <br />
-                {order.paymentIntent.shippingAdd.specialMessage ? (
+                {order.paymentIntent?.shippingAdd?.specialMessage ? (
                   <div>
                     Special message:{" "}
-                    {order.paymentIntent.shippingAdd.specialMessage}
+                    {order.paymentIntent?.shippingAdd?.specialMessage}
                   </div>
                 ) : (
                   <div> </div>
                 )}
-                {/* <div>Special message: {order.paymentIntent.shippingAdd.specialMessage}</div> <br/> */}
+                {/* <div>Special message: {order.paymentIntent?.shippingAdd?.specialMessage}</div> <br/> */}
               </div>
             </Col>
             <Col lg={12}>
@@ -103,25 +109,21 @@ const Orders = ({ orders, handleStatusChange }) => {
                 <p style={{ fontSize: "25px" }}>Payment Info:</p>
                 <div>
                   Status:{" "}
-                  {order.paymentIntent.paymentInfo.stripeResponse.status}
+                  {order.paymentIntent?.paymentInfo?.stripeResponse?.status}
                 </div>{" "}
                 <br />
                 <div>
-                  PaymentID: {order.paymentIntent.paymentInfo.stripeResponse.id}
+                  PaymentID: {order.paymentIntent?.paymentInfo?.stripeResponse?.id}
                 </div>{" "}
                 <br />
                 <div>
                   Amount:{" "}
-                  {order.paymentIntent.paymentInfo.stripeResponse.amount / 100}
+                  {(order.paymentIntent?.paymentInfo?.stripeResponse?.amount ?? 0) / 100}
                 </div>{" "}
                 <br />
                 <div>
                   Date:{" "}
-                  {moment
-                    .unix(
-                      order.paymentIntent.paymentInfo.stripeResponse.created
-                    )
-                    .format("MMMM Do YYYY, h:mm:ss a")}
+                  {orderDate(order)}
                 </div>{" "}
                 <br />
               </div>

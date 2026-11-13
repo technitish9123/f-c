@@ -3,24 +3,13 @@ import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
 import { useFavourites } from "../../functions/useFavourites";
+import { addToCart } from "../../functions/cart";
 import AccountLayout from "../../components/nav/AccountLayout";
 import laptop from "../../images/laptop.png";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const SITE = "https://firstimp.in";
 
-const addToBag = (dispatch, product) => {
-  let cart = [];
-  try {
-    cart = JSON.parse(localStorage.getItem("cart")) || [];
-  } catch (e) {
-    cart = [];
-  }
-  if (!cart.some((p) => p._id === product._id)) cart.push({ ...product, count: 1 });
-  localStorage.setItem("cart", JSON.stringify(cart));
-  dispatch({ type: "ADD_TO_CART", payload: cart });
-  dispatch({ type: "DRAWER_VISIBILITY", payload: true });
-};
 
 const FavouriteRow = ({ item, onRemove }) => {
   const dispatch = useDispatch();
@@ -59,7 +48,7 @@ const FavouriteRow = ({ item, onRemove }) => {
           </button>
           <Link to={`/product/${item.slug}`}>Details</Link>
           <a href={enquiry}>Enquire</a>
-          <button type="button" className="is-primary" onClick={() => addToBag(dispatch, item)} disabled={out}>
+          <button type="button" className="is-primary" onClick={() => addToCart(dispatch, item)} disabled={out}>
             {out ? "Sold out" : "Add to bag"}
           </button>
         </div>

@@ -11,7 +11,7 @@ import {
 import { getCategories, getSubs } from "../../../functions/category";
 import { Spin } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ProductCreateForm from "../../../components/forms/ProductCreateForm";
 import LocalSearch from "../../../components/forms/LocalSearch";
 import FileUpload from "../../../components/forms/FileUpload";
@@ -194,7 +194,9 @@ const initialState = {
   rollLength: "",
 };
 
-const ProductUpdate = ({ match, history }) => {
+const ProductUpdate = () => {
+  const navigate = useNavigate();
+  const { slug } = useParams();
   const { user } = useSelector((state) => ({ ...state }));
 
   const [values, setValues] = useState(initialState);
@@ -210,7 +212,7 @@ const ProductUpdate = ({ match, history }) => {
   }, []);
 
   const loadProduct = () => {
-    getProduct(match.params.slug).then((res) => {
+    getProduct(slug).then((res) => {
       setValues({ ...values, ...res.data });
       // prepoulation the subs by loading the single category subs
       getSubs(res.data.category._id).then((s) => {
@@ -237,11 +239,11 @@ const ProductUpdate = ({ match, history }) => {
     setLoading(true);
 
     values.subs = arrSubsIds;
-    updateProduct(match.params.slug, values, user.token)
+    updateProduct(slug, values, user.token)
       .then((res) => {
         setLoading(false);
         toast.success(`${res.data.title} updated successfully`);
-        history.push("/admin/products");
+        navigate("/admin/products");
       })
       .catch((err) => {
         setLoading(false);

@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useLegacyHistory as useHistory } from "./legacy";
+import { useNavigate } from "react-router-dom";
 
 const LoadingToRedirect = () => {
   const [count, setCount] = useState(5);
-  let history = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCount((currentCount) => --currentCount);
     }, 1000);
     // redirect once count is equal to 0
-    count === 0 && history.push("/");
+    count === 0 && navigate("/");
     // cleanup
     return () => clearInterval(interval);
-  }, [count, history]);
+  }, [count, navigate]);
 
   return (
     <div className="container p-5 text-center">

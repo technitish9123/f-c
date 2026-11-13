@@ -5,10 +5,12 @@ import { useSelector } from "react-redux";
 import { updateCategory, getCategory } from "../../../functions/category";
 import { Spin } from "antd";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import CategoryForm from "../../../components/forms/CategoryForm";
 
-const CategoryUpdate = ({ history, match }) => {
+const CategoryUpdate = () => {
+  const navigate = useNavigate();
+  const { slug } = useParams();
   const { user } = useSelector((state) => ({ ...state }));
 
   const [name, setName] = useState("");
@@ -19,18 +21,18 @@ const CategoryUpdate = ({ history, match }) => {
   }, []);
 
   const loadCategory = () => {
-    getCategory(match.params.slug).then((c) => setName(c.data.name));
+    getCategory(slug).then((c) => setName(c.data.category ? c.data.category.name : ""));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    updateCategory(match.params.slug, { name }, user.token)
+    updateCategory(slug, { name }, user.token)
       .then((res) => {
         setLoading(false);
         setName("");
         toast.success(`"${res.data.name}" is upated`);
-        history.push("/admin/category");
+        navigate("/admin/category");
       })
       .catch((err) => {
         console.log(err);

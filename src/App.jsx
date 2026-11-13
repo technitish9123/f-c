@@ -1,7 +1,6 @@
 import React, { useEffect, lazy, Suspense } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { Routes, Route } from "react-router-dom";
-import { LegacyPage } from "./components/routes/legacy";
 import { ToastContainer, Slide } from "react-toastify";
 import { auth } from "./firebase";
 import { useDispatch } from "react-redux";
@@ -38,8 +37,6 @@ const ProductCreate = lazy(() => import("./pages/admin/product/ProductCreate"));
 const AllProducts = lazy(() => import("./pages/admin/product/AllProducts"));
 const ProductUpdate = lazy(() => import("./pages/admin/product/ProductUpdate"));
 const Product = lazy(() => import("./pages/Product"));
-const CategoryHome = lazy(() => import("./pages/category/CategoryHome"));
-const SubHome = lazy(() => import("./pages/sub/SubHome"));
 const Shop = lazy(() => import("./pages/Shop"));
 const Cart = lazy(() => import("./pages/Cart"));
 const SideDrawer = lazy(() => import("./components/drawer/SideDrawer"));
@@ -100,34 +97,34 @@ const App = () => {
       />
       <SideDrawer />
       <Routes>
-        <Route path="/user/history" element={<UserRoute><LegacyPage component={History} /></UserRoute>} />
-        <Route path="/user/password" element={<UserRoute><LegacyPage component={Password} /></UserRoute>} />
-        <Route path="/favourites" element={<LegacyPage component={Wishlist} />} />
-        <Route path="/user/wishlist" element={<LegacyPage component={Wishlist} />} />
-        <Route path="/checkout" element={<UserRoute><LegacyPage component={Checkout} /></UserRoute>} />
-        <Route path="/payment" element={<UserRoute><LegacyPage component={Payment} /></UserRoute>} />
-        <Route path="/admin/dashboard" element={<AdminRoute><div className="admin-shell"><LegacyPage component={AdminDashboard} /></div></AdminRoute>} />
-        <Route path="/admin/category" element={<AdminRoute><div className="admin-shell"><LegacyPage component={CategoryCreate} /></div></AdminRoute>} />
-        <Route path="/admin/category/:slug" element={<AdminRoute><div className="admin-shell"><LegacyPage component={CategoryUpdate} /></div></AdminRoute>} />
-        <Route path="/admin/sub" element={<AdminRoute><div className="admin-shell"><LegacyPage component={SubCreate} /></div></AdminRoute>} />
-        <Route path="/admin/sub/:slug" element={<AdminRoute><div className="admin-shell"><LegacyPage component={SubUpdate} /></div></AdminRoute>} />
-        <Route path="/admin/product" element={<AdminRoute><div className="admin-shell"><LegacyPage component={ProductCreate} /></div></AdminRoute>} />
-        <Route path="/admin/products" element={<AdminRoute><div className="admin-shell"><LegacyPage component={AllProducts} /></div></AdminRoute>} />
-        <Route path="/admin/sliderimageupload" element={<AdminRoute><div className="admin-shell"><LegacyPage component={SliderImageAdd} /></div></AdminRoute>} />
-        <Route path="/admin/product/:slug" element={<AdminRoute><div className="admin-shell"><LegacyPage component={ProductUpdate} /></div></AdminRoute>} />
-        <Route path="/admin/coupon" element={<AdminRoute><div className="admin-shell"><LegacyPage component={CreateCoupon} /></div></AdminRoute>} />
-        <Route path="/product/:slug" element={<LegacyPage component={Product} />} />
-        <Route path="/category/:slug" element={<LegacyPage component={CategoryHome} />} />
-        <Route path="/sub/:slug" element={<LegacyPage component={SubHome} />} />
-        <Route path="/shop" element={<LegacyPage component={Shop} />} />
-        <Route path="/cart" element={<LegacyPage component={Cart} />} />
-        <Route path="/terms-and-condition" element={<LegacyPage component={TermsAndCondition} />} />
-        <Route path="/" element={<LegacyPage component={Home} />} />
-        <Route path="/login" element={<LegacyPage component={Login} />} />
-        <Route path="/register" element={<LegacyPage component={Register} />} />
-        <Route path="/register/complete" element={<LegacyPage component={RegisterComplete} />} />
-        <Route path="/forgot/password" element={<LegacyPage component={ForgotPassword} />} />
-        <Route path="/contact" element={<LegacyPage component={Contact} />} />
+        <Route path="/user/history" element={<UserRoute><History /></UserRoute>} />
+        <Route path="/user/password" element={<UserRoute><Password /></UserRoute>} />
+        <Route path="/favourites" element={<Wishlist />} />
+        <Route path="/user/wishlist" element={<Wishlist />} />
+        <Route path="/checkout" element={<UserRoute><Checkout /></UserRoute>} />
+        <Route path="/payment" element={<UserRoute><Payment /></UserRoute>} />
+        <Route path="/admin/dashboard" element={<AdminRoute><div className="admin-shell"><AdminDashboard /></div></AdminRoute>} />
+        <Route path="/admin/category" element={<AdminRoute><div className="admin-shell"><CategoryCreate /></div></AdminRoute>} />
+        <Route path="/admin/category/:slug" element={<AdminRoute><div className="admin-shell"><CategoryUpdate /></div></AdminRoute>} />
+        <Route path="/admin/sub" element={<AdminRoute><div className="admin-shell"><SubCreate /></div></AdminRoute>} />
+        <Route path="/admin/sub/:slug" element={<AdminRoute><div className="admin-shell"><SubUpdate /></div></AdminRoute>} />
+        <Route path="/admin/product" element={<AdminRoute><div className="admin-shell"><ProductCreate /></div></AdminRoute>} />
+        <Route path="/admin/products" element={<AdminRoute><div className="admin-shell"><AllProducts /></div></AdminRoute>} />
+        <Route path="/admin/sliderimageupload" element={<AdminRoute><div className="admin-shell"><SliderImageAdd /></div></AdminRoute>} />
+        <Route path="/admin/product/:slug" element={<AdminRoute><div className="admin-shell"><ProductUpdate /></div></AdminRoute>} />
+        <Route path="/admin/coupon" element={<AdminRoute><div className="admin-shell"><CreateCoupon /></div></AdminRoute>} />
+        <Route path="/product/:slug" element={<Product />} />
+        <Route path="/category/:slug" element={<Shop />} />
+        <Route path="/sub/:slug" element={<Shop />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/terms-and-condition" element={<TermsAndCondition />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/register/complete" element={<RegisterComplete />} />
+        <Route path="/forgot/password" element={<ForgotPassword />} />
+        <Route path="/contact" element={<Contact />} />
       </Routes>
       <Footer />
     </Suspense>

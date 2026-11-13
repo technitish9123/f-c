@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { sendSignInLinkToEmail } from "firebase/auth";
 import { auth } from "../../firebase";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import Recaptcha from "react-recaptcha";
 
-const Register = ({ history }) => {
+const Register = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [isVerified, setiIsVerified] = useState(false);
   const { user } = useSelector((state) => ({ ...state }));
 
   useEffect(() => {
-    if (user && user.token) history.push("/");
-  }, [user, history]);
+    if (user && user.token) navigate("/");
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

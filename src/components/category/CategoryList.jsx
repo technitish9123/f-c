@@ -1,98 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getCategories } from "../../functions/category";
-import { Spin } from "antd";
-import styled from "styled-components";
 import tileA from "../assets/images/s6.jpg";
 import tileB from "../assets/images/s7.jpg";
 import tileC from "../assets/images/s1.jpg";
 
+const TILES = [tileA, tileB, tileC];
 
-const Container = styled.div`
-  display: flex;
-  padding: 20px;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  @media (max-width: 620px) {
-    padding: 0px;
-    flex-direction: column;
-  }
-  
-  
-`;
-const ContainerSub = styled.div`
-  flex: 1;
-  margin: 3px;
-  height: 70vh;
-  position: relative;
-  flex-wrap: wrap;
-  background:#dbe4d4 ;
-`;
-
-
-const Image = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  
-
-`;
-
-const Info = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-`;
-
-const Title = styled.h1`
-    color: #1a1c1d;
-    margin-bottom: 20px;
-`;
-
-const Button = styled.button`
-    border:none;
-    padding: 10px;
-    background-color: white;
-    color:gray;
-    cursor: pointer;
-    font-weight: 600;
-`;
-
-
+// Home page category mosaic.
 const CategoryList = () => {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
-    getCategories().then((c) => {
-      setCategories(c.data);
-      setLoading(false);
-    });
-    return () => getCategories();
+    let current = true;
+    getCategories()
+      .then((res) => current && setCategories(res.data || []))
+      .catch(() => current && setCategories([]));
+    return () => {
+      current = false;
+    };
   }, []);
 
-  const tileImages = [tileA, tileB, tileC];
+  if (!categories) return <div className="mosaic mosaic--loading skeleton" aria-busy="true" />;
 
-  return loading ? (
-    <div style={{ textAlign: "center", padding: 48 }}>
-      <Spin />
-    </div>
-  ) : (
+  return (
     <div className="mosaic">
       {categories.map((c, i) => (
-        <Link
-          to={`/category/${c.slug}`}
-          className="mosaic__tile reveal"
-          key={c._id}
-        >
-          <img src={tileImages[i % tileImages.length]} alt="" loading="lazy" />
+        <Link to={`/category/${c.slug}`} className="mosaic__tile reveal" key={c._id}>
+          <img src={TILES[i % TILES.length]} alt="" loading="lazy" />
           <div className="mosaic__label">
             <span>Shop now</span>
             <strong>{c.name}</strong>

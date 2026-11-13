@@ -9,11 +9,10 @@ import {
 } from "@stripe/react-stripe-js";
 import { useSelector, useDispatch } from "react-redux";
 import { createPaymentsIntent } from "../../functions/stripe";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, Button } from "antd";
 import { DollarOutlined, CheckOutlined } from "@ant-design/icons";
 import laptop from "../../images/laptop.png";
-import { useLegacyHistory as useHistory } from "../routes/legacy";
 import { createOrder, emptyUserCart } from "../../functions/user";
 
 const StripeCheckout = () => {
@@ -21,7 +20,7 @@ const StripeCheckout = () => {
     ...state,
   }));
   const dispatch = useDispatch();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [succeeded, setSucceeded] = useState(false);
   const [error, setError] = useState(null);
@@ -198,7 +197,7 @@ const StripeCheckout = () => {
   };
 
   const handleSessionEnd = () => {
-    history.push("/user/history");
+    navigate("/user/history");
     dispatch({
       type: "SESSION",
       payload: false,

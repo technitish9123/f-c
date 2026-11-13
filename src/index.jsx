@@ -1,7 +1,5 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import "./style.scss"
 import App from "./App";
 import { ConfigProvider } from "antd";
 
@@ -31,13 +29,14 @@ import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter } from "react-router-dom";
 import "./styles/theme.css";
 
-import { createStore } from "redux";
+import { createStore, compose } from "redux";
 import { Provider } from "react-redux";
-import { composeWithDevTools } from "redux-devtools-extension";
 import rootReducer from "./reducers";
 
 // store
-const store = createStore(rootReducer, composeWithDevTools());
+// Redux DevTools when the browser extension is installed.
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const store = createStore(rootReducer, composeEnhancers());
 
 createRoot(document.getElementById("root")).render(
   // <React.StrictMode>

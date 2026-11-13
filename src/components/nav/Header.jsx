@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Badge, Dropdown } from "antd";
 import { MenuOutlined, CloseOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase";
 import { useDispatch, useSelector } from "react-redux";
-import { useLegacyHistory as useHistory } from "../routes/legacy";
 import Search from "../forms/Search";
 import { useFavourites } from "../../functions/useFavourites";
-import "./nav.css";
 import WeaveMark from "../brand/WeaveMark";
 
 const Header = () => {
@@ -19,7 +17,7 @@ const Header = () => {
   let dispatch = useDispatch();
   let { user, cart } = useSelector((state) => ({ ...state }));
 
-  let history = useHistory();
+  const navigate = useNavigate();
 
   const logout = () => {
     signOut(auth);
@@ -27,7 +25,7 @@ const Header = () => {
       type: "LOGOUT",
       payload: null,
     });
-    history.push("/login");
+    navigate("/login");
   };
 
   const dashboard =

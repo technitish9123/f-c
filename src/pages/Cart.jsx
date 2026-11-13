@@ -1,25 +1,13 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { userCart } from "../functions/user";
+import { readCart, writeCart } from "../functions/cart";
 import laptop from "../images/laptop.png";
 
 const inr = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const MAX_QTY = 999;
-
-// The bag lives in localStorage + redux; keep both in step.
-const writeCart = (dispatch, cart) => {
-  localStorage.setItem("cart", JSON.stringify(cart));
-  dispatch({ type: "ADD_TO_CART", payload: cart });
-};
-const readCart = () => {
-  try {
-    return JSON.parse(localStorage.getItem("cart")) || [];
-  } catch (e) {
-    return [];
-  }
-};
 
 const BagLine = ({ item, onQty, onRemove }) => {
   const img = item.images && item.images.length ? item.images[0].url : laptop;
@@ -65,7 +53,8 @@ const BagLine = ({ item, onQty, onRemove }) => {
   );
 };
 
-const Cart = ({ history }) => {
+const Cart = () => {
+  const navigate = useNavigate();
   const user = useSelector((state) => state.user);
   const cart = useSelector((state) => state.cart);
   const dispatch = useDispatch();
@@ -88,7 +77,7 @@ const Cart = ({ history }) => {
     setSaving(true);
     userCart(cart, user.token)
       .then((res) => {
-        if (res.data.ok) history.push("/checkout");
+        if (res.data.ok) navigate("/checkout");
       })
       .catch(() => toast.error("We couldn't save your bag. Please try again."))
       .finally(() => setSaving(false));

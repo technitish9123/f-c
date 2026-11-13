@@ -5,10 +5,12 @@ import { toast } from "react-toastify";
 import { Button } from "antd";
 import { MailOutlined, GoogleOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createOrUpdateUser } from "../../functions/auth";
 
-const Login = ({ history }) => {
+const Login = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -16,25 +18,25 @@ const Login = ({ history }) => {
   const { user } = useSelector((state) => ({ ...state }));
 
   useEffect(() => {
-    let intended = history.location.state;
+    let intended = location.state;
     if (intended) {
       return;
     } else {
-      if (user && user.token) history.push("/");
+      if (user && user.token) navigate("/");
     }
-  }, [user, history]);
+  }, [user, navigate]);
 
   let dispatch = useDispatch();
 
   const roleBasedRedirect = (res) => {
-    let intended = history.location.state;
+    let intended = location.state;
     if (intended) {
-      history.push(intended.from);
+      navigate(intended.from);
     } else {
       if (res.data.role === "admin") {
-        history.push("/admin/dashboard");
+        navigate("/admin/dashboard");
       } else {
-        history.push("/user/history");
+        navigate("/user/history");
       }
     }
   };
@@ -63,7 +65,7 @@ const Login = ({ history }) => {
         })
         .catch((err) => console.log(err));
 
-      // history.push("/");
+      // navigate("/");
     } catch (error) {
       console.log(error);
       toast.error(error.message);
@@ -91,7 +93,7 @@ const Login = ({ history }) => {
             roleBasedRedirect(res);
           })
           .catch((err) => console.log(err));
-        // history.push("/");
+        // navigate("/");
       })
       .catch((err) => {
         console.log(err);

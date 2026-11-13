@@ -11,11 +11,13 @@ import {
 } from "../../../functions/sub";
 import { Spin, Select } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import CategoryForm from "../../../components/forms/CategoryForm";
 
 const { Option } = Select;
-const SubUpdate = ({ history, match }) => {
+const SubUpdate = () => {
+  const navigate = useNavigate();
+  const { slug } = useParams();
   const { user } = useSelector((state) => ({ ...state }));
 
   const [name, setName] = useState("");
@@ -36,7 +38,7 @@ const SubUpdate = ({ history, match }) => {
   };
 
   const loadSub = () =>
-    getSub(match.params.slug).then((s) => {
+    getSub(slug).then((s) => {
       setName(s.data.name);
       setParent(s.data.parent);
     });
@@ -44,12 +46,12 @@ const SubUpdate = ({ history, match }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    updateSub(match.params.slug, { name, parent }, user.token)
+    updateSub(slug, { name, parent }, user.token)
       .then((res) => {
         setLoading(false);
         setName("");
         toast.success(`"${res.data.name}" is updated`);
-        history.push("/admin/sub");
+        navigate("/admin/sub");
       })
       .catch((err) => {
         console.log(err);
